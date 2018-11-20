@@ -26,14 +26,14 @@ public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String groupid;
-    private String name;
-    private String descr;
-    private String ownerusername;
-    private Integer maxmembercount;
-    private String ctime;
-    private String mtime;
-    private String avatar;
+    private String groupid; // 分组编号
+    private String name; // 分组名称
+    private String descr; // 备注描述
+    private String ownerusername; // 所有者用户名
+    private Integer maxmembercount; // 最大成员数
+    private String ctime; //
+    private String mtime; //
+    private String avatar; //
 
 
 }

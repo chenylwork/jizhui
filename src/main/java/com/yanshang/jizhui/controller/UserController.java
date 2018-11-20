@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.annotation.Resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -326,15 +328,13 @@ public class UserController {
     public ResultString<String> findallexperts() {
         ResultString<String> rr = new ResultString<>();
         List<User> list = userService.finduserbytype();
-
         JsonArray json = new JsonArray();
         for (int i = 0; i < list.size(); i++) {
             JsonObject jsonobj = new JsonObject();
             jsonobj.addProperty("username", list.get(i).getUsername());
             jsonobj.addProperty("image", list.get(i).getImage());
-
             jsonobj.addProperty("phone", list.get(i).getPhone());
-
+            jsonobj.addProperty("nickname", list.get(i).getNickname());
             System.out.println(json);
             json.add(jsonobj);
 

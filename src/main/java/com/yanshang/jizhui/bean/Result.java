@@ -33,8 +33,8 @@ public class Result {
     private String SensorID10;
     @SuppressWarnings("unused")
     private String result;
-    private String username;
-    private String createtime;
+    private String username; // 账号
+    private String createtime; // 创建时间
 
     public String getResult() {
         String result = this.SensorID01 + this.SensorID02 + this.SensorID03 + this.SensorID04

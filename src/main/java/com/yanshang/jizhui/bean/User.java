@@ -26,22 +26,22 @@ public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String username;
-    private String password;
+    private String username; // 账号
+    private String password; // 密码
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String nickname;
+    private String nickname; // 昵称
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String sex;
+    private String sex; // 性别
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private Integer age;
+    private Integer age; // 年龄
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String image;
+    private String image; // 头像图片
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String phone;
+    private String phone; // 电话
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String userid;
+    private String userid; // 用户id
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String token;
+    private String token; // token
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String rolename;
+    private String rolename; // 角色名称
 }

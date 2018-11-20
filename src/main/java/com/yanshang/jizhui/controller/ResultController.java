@@ -29,28 +29,25 @@ public class ResultController {
     @Resource
     private AdviceRepository adviceRepository;
 
-    @RequestMapping("/add")
-    public ResultString<Map<String, Object>> save(String message, String username, HttpServletRequest request) {
-        ResultString<Map<String, Object>> rr = new ResultString<>();
-        Map<String, Object> map1 = new HashMap<>();
+    private static final int MAX_INPUT_SIZE = 5;
 
-
-        message = message.replace("    ", "").trim();
-
-
-        String ex = message.split("Exame")[0].replaceAll("    ", "");
+    /**
+     * 解析上传数据
+     * @param data
+     * @param username
+     */
+    private List<Result> resolver(String data,String username) {
+        data = data.replace("    ", "").trim();
+        String ex = data.split("Exame")[0].replaceAll("    ", "");
         String ex1 = ex.replaceAll(":", "").trim();
         String[] ex3 = ex1.split("Value");
-
         for (int i = 0; i < ex3.length; i++) {
-
             char c = ex3[i].charAt(0);
             System.out.println(c);
-
         }
+        // 用户脊柱信息填入对象
         Result result = new Result();
         result.setSensorID01(String.valueOf(ex3[1].charAt(0)));
-
         result.setSensorID02(String.valueOf(ex3[2].charAt(0)));
         result.setSensorID03(String.valueOf(ex3[3].charAt(0)));
         result.setSensorID04(String.valueOf(ex3[4].charAt(0)));
@@ -64,22 +61,43 @@ public class ResultController {
         result.setUsername(username);
         result.setCreatetime(TimeTools.getStringBySDate(new Date()));
         System.out.println(result.getResult());
+        // 数据信息入库
         resultService.save(result);
         /**
+         * 旧注释：
          * 从数据库查找 用户的20条数据
          */
-        List<Result> list = resultService.findresultByusername(result.getUsername(), result.getCreatetime());
+        // 获取刚添加的数据
+        return resultService.findresultByusername(result.getUsername(), result.getCreatetime());
+
+    }
+
+    /**
+     * 获取脊柱检查数据
+     * @param message 脊柱数据信息
+     * @param username 用户名
+     * @param request
+     * @return
+     */
+    @RequestMapping("/add")
+    public ResultString<Map<String, Object>> save(String message, String username, HttpServletRequest request) {
+        ResultString<Map<String, Object>> rr = new ResultString<>();
+        Map<String, Object> map1 = new HashMap<>();
+        // 解析上传数据
+        List<Result> list = resolver(message, username);
+
         int count = 1;
         List<String> list2 = new ArrayList<String>();
         Result res = null;
         System.out.println(list.size());
         Map<String, Integer> map = new HashMap<String, Integer>();
-
-        if (list.size() < 10) {
+        if (list.size() < MAX_INPUT_SIZE) {
+            rr.setCode(1);
+            rr.setData(null);
+            rr.setMessage("数据正在获取中...");
             System.out.println("当前正在传输" + list.size() + "条数据!!!");
-        } else if (list.size() >= 10) {
-
-            //重复的加入list2集合
+        } else if (list.size() >= MAX_INPUT_SIZE) {
+            // 重复的加入list2集合
             for (int i = 0; i < list.size(); i++) {
                 for (int j = i; j < list.size() - 1; j++) {
                     if (list.get(i).equals(list.get(j))) {
@@ -88,12 +106,9 @@ public class ResultController {
                     }
                 }
             }
-
-            //统计list2集合中重复数据出现次数,对应放入Map集合
+            // 统计list2集合中重复数据出现次数,对应放入Map集合
             for (String obj : list2) {
                 if (map.containsKey(obj)) {
-
-
                     map.put(obj, map.get(obj).intValue() + 1);
                     count++;//存一次 value就会加1 此时value就是key在list重复的次数
                 } else {
@@ -101,17 +116,14 @@ public class ResultController {
                 }
             }
             System.out.println("count=" + count);
-
             List<String> list3 = new ArrayList<>();
-
-            //迭代Map集合,重复数据出现最多的加入list3集合
+            // 迭代Map集合,重复数据出现最多的加入list3集合
             Iterator<Map.Entry<String, Integer>> it = map.entrySet().iterator();
             while (it.hasNext()) {
                 Entry<String, Integer> entry = it.next();
                 System.out.println(count);
                 System.out.println(entry.getValue());
                 if (entry.getValue() == count) {
-
                     list3.add(entry.getKey());
                     System.out.println("key=" + entry.getKey() + "," + "value=" + entry.getValue());
                 }
@@ -123,8 +135,6 @@ public class ResultController {
             if (list3.size() == 1) {
                 System.out.println("出现最多次数的是:" + list3 + ",总共出现了:" + (count + 1) + "次");
             }
-
-
             Advice advice = adviceRepository.findAdvice(list2.get(0));
             System.out.println(advice);
             if (advice != null) {
@@ -133,13 +143,9 @@ public class ResultController {
                 /**
                  * 获得指导意见成功删除重复结果
                  */
-
-
                 resultService.del1();
                 map1.put("message", advice.getMessage());//指导意见
                 map1.put("content", advice.getContent());//返回结果
-
-
                 rr.setData(map1);
             } else {
                 rr.setCode(0);
@@ -147,16 +153,13 @@ public class ResultController {
                 map1.put("content", "你需要补水");//返回结果
                 rr.setData(map1);
             }
-
-
-        } else {
-            rr.setCode(1);
-            rr.setData(null);
-            rr.setMessage("数据正在获取中...");
         }
-
-
+//        else {
+//            rr.setCode(1);
+//            rr.setData(null);
+//            rr.setMessage("数据正在获取中...");
+//        }
         return rr;
-
     }
 }
+
