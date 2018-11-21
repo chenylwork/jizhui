@@ -21,7 +21,7 @@ public class Advice {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private String level;
     private String code;
     private String content;
-    private String message;
 }

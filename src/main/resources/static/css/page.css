@@ -8,12 +8,11 @@
 #hides {
     display: none;
 }
-
 .logHead img {
-    margin-left: 20%;
-    margin-top: 32px;
+    /*margin-left: 20%;*/
+    /*margin-top: 32px;*/
+    width: 100%;
 }
-
 .logDiv {
     width: 100%;
     position: relative;

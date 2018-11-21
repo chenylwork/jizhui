@@ -24,29 +24,22 @@ public class UploadImgController {
 
     @RequestMapping(value = "/testuploadimg", method = RequestMethod.POST)
     public @ResponseBody
-    String uploadImg(@RequestParam("img") MultipartFile file, String nickname, String phone, String username,
+    String uploadImg(@RequestParam("img") MultipartFile img, String nickname, String phone, String username,
                      HttpServletRequest request) {
-        String contentType = file.getContentType();
+        String contentType = img.getContentType();
         User user = userService.finduserbyusername(username);
         user.setNickname(nickname);
         user.setPhone(phone);
         user.setRolename("专家");
-
-
-        String fileName = System.currentTimeMillis() + file.getOriginalFilename();
-
+        String fileName = System.currentTimeMillis() + img.getOriginalFilename();
         System.out.println(fileName);
-
         String destFileName = "D:/imgs/" + File.separator + fileName;
-
         File destFile = new File(destFileName);
-
         destFile.getParentFile().mkdirs();
-
         user.setImage("http://211.149.194.181:80/image/" + fileName);
         userService.save(user);
         try {
-            file.transferTo(destFile);
+            img.transferTo(destFile);
             System.out.println(destFile);
         } catch (IllegalStateException e1) {
             // TODO Auto-generated catch block
@@ -55,8 +48,6 @@ public class UploadImgController {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-
-
         //返回json
         return "上传成功!!!";
     }

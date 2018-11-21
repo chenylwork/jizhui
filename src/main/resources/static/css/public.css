@@ -39,11 +39,9 @@ li {
     float: left;
     display: inline-block;
 }
-
 .head .headL img.headLogo {
-    padding-top: 28px;
+    padding-top: 12px;
 }
-
 .head .headR {
     width: 400px;
     height: 100%;

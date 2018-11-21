@@ -30,11 +30,7 @@ public class AdviceController {
 
         map.put("rows", pagelist.getContent());
         map.put("total", pagelist.getSize());
-
-
         return map;
-
-
     }
 
 
@@ -42,7 +38,6 @@ public class AdviceController {
     @RequestMapping("/addadvice")
     public Map<String, Object> savegoods(Advice advice, HttpServletRequest request) {
         Map<String, Object> map = new HashMap<>();
-
         adviceService.save(advice);
         map.put("success", true);
         return map;
@@ -57,16 +52,8 @@ public class AdviceController {
         String[] idsStr = ids.split(",");
         for (int i = 0; i < idsStr.length; i++) {
             adviceService.del(Integer.parseInt(idsStr[i]));
-
-
         }
         map.put("success", true);
-
-
         return map;
-
-
     }
-
-
 }

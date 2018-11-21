@@ -37,13 +37,11 @@ public class Result {
     private String createtime; // 创建时间
 
     public String getResult() {
-        String result = this.SensorID01 + this.SensorID02 + this.SensorID03 + this.SensorID04
-                + this.SensorID04 + this.SensorID05 + this.SensorID06 + this.SensorID07 + this.SensorID08
+        String result = this.SensorID01 + this.SensorID02 + this.SensorID03 + this.SensorID04 +
+                this.SensorID05 + this.SensorID06 + this.SensorID07 + this.SensorID08
                 + this.SensorID09 + this.SensorID10;
         //System.out.println(result);
         return result;
-
-
     }
 
     public void setResult(String result) {
