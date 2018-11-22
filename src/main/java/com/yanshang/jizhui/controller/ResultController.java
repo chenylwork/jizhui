@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.yanshang.jizhui.bean.Check;
 import com.yanshang.jizhui.respository.CheckRepository;
+import com.yanshang.jizhui.respository.ResultRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,21 +31,24 @@ public class ResultController {
     private ResultService resultService;
     @Resource
     private AdviceRepository adviceRepository;
+
     @Resource
     private CheckRepository checkRepository;
+    @Resource
+    private ResultRepository resultRepository;
 
     private static final int MAX_INPUT_SIZE = 5;
 
     private static final int MAX_HAS_PROBLEM_SIZE = 2;
 
 
-
     /**
      * 解析上传数据
+     *
      * @param data
      * @param username
      */
-    private List<Result> resolver(String data,String username,String checkTime) {
+    private List<Result> resolver(String data, String username, String state) {
         data = data.replace("    ", "").trim();
         String ex = data.split("Exame")[0].replaceAll("    ", "");
         String ex1 = ex.replaceAll(":", "").trim();
@@ -67,7 +71,9 @@ public class ResultController {
         result.setSensorID10(String.valueOf(ex3[10].charAt(0)));
         result.setResult(result.getResult());
         result.setUsername(username);
+        String checkTime = TimeTools.getStringBySDate(new Date());
         result.setCreatetime(checkTime);
+        result.setState(ResultRepository.STATE_OPEN);
         System.out.println(result.getResult());
         // 数据信息入库
         resultService.save(result);
@@ -76,38 +82,40 @@ public class ResultController {
          * 从数据库查找 用户的20条数据
          */
         // 获取刚添加的数据
-        return resultService.findresultByusername(result.getUsername(), result.getCreatetime());
+        return resultService.findresultByusername(result.getUsername());
 
     }
 
     /**
      * 获取脊柱检查数据
-     * @param message 脊柱数据信息
+     *
+     * @param message  脊柱数据信息
      * @param username 用户名
      * @param request
      * @return
      */
     @RequestMapping("/add")
-    public ResultString<Map<String, Object>> save(String message, String username, HttpServletRequest request) {
+    public ResultString<Map<String, Object>> save(String message, String state, String username, HttpServletRequest request) {
         ResultString<Map<String, Object>> rr = new ResultString<>();
         Map<String, Object> messageData = new HashMap<>();
         rr.setData(messageData);
         // 解析上传数据,并获取已经上传的数据信息
         String checkTime = TimeTools.getStringBySDate(new Date());
-        List<Result> list = resolver(message, username,checkTime);
-
+        List<Result> list = resolver(message, username, state);
         int count = 1;
         // 重复数据集合
         List<String> repeated = new ArrayList<String>();
         Result res = null;
         System.out.println(list.size());
         Map<String, Integer> map = new HashMap<String, Integer>();
-        if (list.size() < MAX_INPUT_SIZE) {
+        if (ResultRepository.STATE_OPEN.equals(state)) {
             rr.setCode(1);
             rr.setData(null);
             rr.setMessage("数据正在获取中...");
             System.out.println("当前正在传输" + list.size() + "条数据!!!");
-        } else if (list.size() >= MAX_INPUT_SIZE) {
+        } else if (ResultRepository.STATE_END.equals(state)) {
+            resultService.update(username);
+            System.out.println("《《《《《《《《《《《更新状态成功");
             // 重复的加入list2集合
             for (int i = 0; i < list.size(); i++) {
                 for (int j = i; j < list.size() - 1; j++) {
@@ -154,14 +162,14 @@ public class ResultController {
             /*********************检查开始*********************/
 
             // 脊柱节，测试号数组
-            String sensorsCodes = list3.get(0);
+            String sensorsCodes = (list3 == null && list3.isEmpty()) ? list.get(0).getResult() : list3.get(0);
             char[] sensorsCodeArray = sensorsCodes.toCharArray();
             boolean checkOver = false;
             String checkMessage = "";
             String checkCode = "";
             // 获取全部指导意见
             List<Advice> allOrderLevel = adviceRepository.findAllOrderLevel();
-            messageData.put("message","系统还未录入指导意见！！！");
+            messageData.put("message", "系统还未录入指导意见！！！");
             if (allOrderLevel == null && allOrderLevel.isEmpty()) return rr;
             // 检查是否有最严重的
             boolean mostSerious = false;
@@ -170,7 +178,7 @@ public class ResultController {
             for (char ant : sensorsCodeArray) {
                 mostSerious = (checkCode.indexOf(ant) != -1);
                 if (checkOver = mostSerious) {
-                    messageData.put("message",checkMessage);
+                    messageData.put("message", checkMessage);
                 }
             }
             // 检查是否有有问题的脊柱节，检查出有MAX_HAS_PROBLEM_SIZE个问题的脊柱节就结束
@@ -179,46 +187,23 @@ public class ResultController {
                 StringBuffer problemNum = new StringBuffer();
                 checkCode = allOrderLevel.get(1).getCode();
                 checkMessage = allOrderLevel.get(1).getContent();
-                for (int i=0; i<sensorsCodeArray.length;i++) {
+                for (int i = 0; i < sensorsCodeArray.length; i++) {
                     if (problem >= MAX_HAS_PROBLEM_SIZE) {
                         String num = problemNum.substring(0, problemNum.lastIndexOf("、"));
-                        checkMessage = checkMessage.replace("X",num);
+                        checkMessage = checkMessage.replace("X", num);
                     }
                     if (checkCode.indexOf(sensorsCodeArray[i]) != -1) {
                         problem++;
-                        problemNum.append((i+1)+"、");
+                        problemNum.append((i + 1) + "、");
                     }
                 }
             }
             if (!checkOver) {
                 checkMessage = allOrderLevel.get(2).getContent();
             }
-            messageData.put("message",checkMessage);
-            checkRepository.save(new Check(sensorsCodes,checkTime,checkMessage,username));
-//            Advice advice = adviceRepository.findAdvice(repeated.get(0));
-//            System.out.println(advice);
-//            if (advice != null) {
-//                rr.setCode(0);
-//                rr.setMessage("获取指导意见成功!");
-//                /**
-//                 * 获得指导意见成功删除重复结果
-//                 */
-//                resultService.del1();
-//                messageData.put("message", advice.getMessage());//指导意见
-//                messageData.put("content", advice.getContent());//返回结果
-//                rr.setData(messageData);
-//            } else {
-//                rr.setCode(0);
-//                messageData.put("message", "你的身体良好");//指导意见
-//                messageData.put("content", "你需要补水");//返回结果
-//                rr.setData(messageData);
-//            }
+            messageData.put("message", checkMessage);
+            checkRepository.save(new Check(sensorsCodes, checkTime, checkMessage, username));
         }
-//        else {
-//            rr.setCode(1);
-//            rr.setData(null);
-//            rr.setMessage("数据正在获取中...");
-//        }
         return rr;
     }
 }

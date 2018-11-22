@@ -25,9 +25,9 @@ public class ResultServiceImpl implements ResultService {
     }
 
     @Override
-    public List<Result> findresultByusername(String username, String createtime) {
+    public List<Result> findresultByusername(String username) {
         // TODO Auto-generated method stub
-        return resultRepository.findresultByusername(username, createtime);
+        return resultRepository.findresultByusername(username);
     }
 
     @Override
@@ -49,5 +49,9 @@ public class ResultServiceImpl implements ResultService {
         resultRepository.del1();
     }
 
-
+    @Override
+    @Modifying
+    public int update(String username) {
+        return resultRepository.updateState(username);
+    }
 }

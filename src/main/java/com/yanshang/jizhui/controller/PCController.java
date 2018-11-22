@@ -142,9 +142,9 @@ public class PCController {
             map.put("success", true);
         } else if (user.getRolename().equals("专家")) {
             map.put("message", "此账号存在!");
-            map.put("success", true);
+            map.put("data",user);
+            map.put("success", false);
         }
-
         return map;
 
 

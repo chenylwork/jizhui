@@ -9,36 +9,24 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script type="text/javascript" src="js/bootstrap-paginator.js"></script>
-
+    <script type="text/javascript" src="js/vue.js"></script>
     <style type="text/css">
         .t {
             align-content: center;
             margin-left: 500px;
             margin-top: 100px;
-
         }
-
         .t input {
             border: 1px solid blue;
         }
-
     </style>
 </head>
-
 <body>
-<img src="" id="up_img" style="position: absolute;top: 20px; left: 20px;">
-<!--<form action="/testuploadimg" method="post" enctype="multipart/form-data">-->
-    <!--<div class="t">专家账号<input type="text" name="username" id="username" onchange="f1()"/></div>-->
-
-    <!--<div class="t">专家昵称<input type="text" name="nickname"/></div>-->
-
-    <!--<div class="t"> 专家联系方式<input type="text" name="phone"/></div>-->
-
-    <!--<div class="t">专家头像: <input type="file" name="img" multiple="multiple" accept="image/*"/></div>-->
-
-    <!--<div class="t"><input type="submit" style="color: red" value="上传专家信息"/></div>-->
-<!--</form>-->
-<div class="container" style="margin-top: 150px;">
+<div id="app">
+    <img v-bind:src="user.image == '' ? 'images/head.jpg' : user.image" id="up_img" style="position: absolute;top: 20px; left: 20px;" width="250" height="250">
+</div>
+<h1 align="center">专家头像上传</h1>
+<div class="container" style="margin-top: 70px;">
 <form action="/testuploadimg" method="post" enctype="multipart/form-data" class="form-horizontal" role="form">
     <div class="form-group">
         <label for="username" class="col-sm-2 control-label">专家账号</label>
@@ -96,6 +84,13 @@
 
 </body>
 <script type="text/javascript">
+    var user = {image:""};
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            user:user
+        }
+    });
     function f1() {
         var username = $("#username").val();
         $.ajax({
@@ -106,6 +101,10 @@
             success: function (object) {
                 if (object.success) {
                     alert(object.message);
+                } else {
+                    console.log(object.data);
+                    Vue.set(user, 'image', object.data.image);
+                    console.log(user.image);
                 }
             }
         })

@@ -22,7 +22,7 @@
 				<th field="cb" checkbox="true" align="center"></th>
 				<th field="id" width="20" align="center">编号</th>
 			<!--	<th field="username" width="20" align="center">账号</th>	-->
-				<th data-options="field:'image',width:100, formatter:showImg">头像</th>
+				<th data-options="field:'image',width:20,height:20,formatter:showImg">头像</th>
 				<th field="nickname" width="100" align="center">专家名称</th>
 				<th field="sex" width="100" align="center">性别</th>
 				<th field="age" width="100" align="center">年龄</th>
@@ -114,7 +114,7 @@
 		//图片展示
 		function showImg(value, row, index){
 			if(row.image){
-				return "<img style='width:200px;height:200px;' border='1' src='"+row.image+"'/>";
+				return "<img style='width:100px;height:100px;' border='1' src='"+row.image+"'/>";
 			}
 		}
 	</script>

@@ -16,3 +16,11 @@ public class JizhuiApplication extends SpringBootServletInitializer {
         return builder.sources(JizhuiApplication.class);
     }
 }
+
+//@SpringBootApplication
+//public class JizhuiApplication {
+//
+//    public static void main(String[] args) {
+//        SpringApplication.run(JizhuiApplication.class, args);
+//    }
+//}

@@ -21,6 +21,7 @@ public class Result {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    private String state; // 使用状态
     private String SensorID01;
     private String SensorID02;
     private String SensorID03;

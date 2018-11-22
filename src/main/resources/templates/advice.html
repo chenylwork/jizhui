@@ -21,13 +21,9 @@
 			<tr>
 				<th field="cb" checkbox="true" align="center"></th>
 				<th field="id" width="20" align="center">编号</th>
+				<th field="level" width="20" align="center">级别</th>
 				<th field="code" width="100" align="center">编码</th>
-				<th field="content" width="200" align="center">结果</th>
-					<th field="message" width="200" align="center">指导意见</th>
-				
-					   
-				
-			
+				<th field="content" width="200" align="center">指导意见</th>
 			</tr>
 		</thead>
 	</table>
@@ -44,25 +40,14 @@
 				iconCls="icon-remove" plain="true">删除</a>
 		</div>
 		<div>
-			 编码： <input
-				style="width: 100px" name="scode" id="scode" /> 
-				
-				
-				 <a
-				href="javascript:searchWebSite()" class="easyui-linkbutton"
-				iconCls="icon-search">搜索</a>
+			 编码：<input style="width: 100px" name="scode" id="scode" />
+			<a href="javascript:searchWebSite()" class="easyui-linkbutton" iconCls="icon-search">搜索</a>
 		</div>
 	</div>
-
 	<!-- 修改框内容 -->
-	<div id="dlg" class="easyui-dialog"
-		style="width: 700px; height: 400px; padding: 10px 20px" closed="true"
-		buttons="#dlg-buttons">
+	<div id="dlg" class="easyui-dialog" style="width: 700px; height: 400px; padding: 10px 20px" closed="true" buttons="#dlg-buttons">
 		<form id="fm" method="post">
 			<table cellspacing="8px">
-				
-
-				
 				<tr>
 					<td>编码：</td>
 					<td><input type="text" id="code" name="code" 
@@ -72,30 +57,15 @@
 				</tr>
 				<tr>
 					<td>结果</td>
-					<td>
-					<textarea name="content" clos="200"  rows="5">
-					 
- 								</textarea>
-					
-					
-					</td>
+					<td><textarea name="content" clos="200"  rows="5"></textarea></td>
 				</tr>
 				<tr>
 					<td>指导意见</td>
-					<td>
-					<textarea name="message" clos="200"  rows="5">
-					 
- 								</textarea>
-					
-					
-					</td>
+					<td><textarea name="message" clos="200"  rows="5"></textarea></td>
 				</tr>
-				
-				
 			</table>
 		</form>
 	</div>
-
 	<!-- 修改对话框的 save、close 按钮 -->
 	<div id="dlg-buttons">
 		<a href="javascript:saveLink()" class="easyui-linkbutton"
@@ -105,13 +75,11 @@
 	<script type="text/javascript">
 		/* 这个 url 经常要用到：add 中的 save，edit 中的 save，独立出来共享 */
 		var url;
-	
 		/* 1、添加用户 */
 		function openLinkAddDialog() {
 			$("#dlg").dialog("open").dialog("setTitle", "添加友情链接信息");
 			url = "/addadvice";
 		}
-	
 		/* 2、修改用户 */
 		function openLinkModifyDialog() {
 			var selectedRows = $("#dg").datagrid("getSelections");
@@ -125,7 +93,6 @@
 			$("#dlg").dialog("open").dialog("setTitle", "编辑友情链接信息");
 			url = "/addadvice?id=" + row.id;
 		}
-	
 		/* 3、删除用户 */
 		function deleteLink() {
 			var selectedRows = $("#dg").datagrid("getSelections");
@@ -185,11 +152,7 @@
 			$("#id").val("");
 			$("#code").val("");
 			$("#content").val("");
-			
-			
-			
 		}
-	
 		/* 关闭对话框 */
 		function closeLinkDialog() {
 			resetValue();
@@ -198,19 +161,9 @@
 		/* 4、增加搜索 */
 		function searchWebSite() {
 			$("#dg").datagrid("load", {
-				
 				code : $("#scode").val()
-				
-				
 			})
-	
 		}
-		
-		
 	</script>
-	
-
 </body>
-
-
 </html>

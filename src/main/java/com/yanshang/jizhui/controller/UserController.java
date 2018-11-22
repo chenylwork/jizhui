@@ -9,7 +9,9 @@ import javax.annotation.Resource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yanshang.jizhui.bean.Result;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +57,10 @@ public class UserController {
     private UserService userService;
     @Resource
     private GroupService groupService;
+    @RequestMapping("/user/query/{username}")
+    public User queryResult(@PathVariable("username") String username) {
+        return userService.finduserbyusername(username);
+    }
 
     @RequestMapping("/register")
     @ResponseBody
