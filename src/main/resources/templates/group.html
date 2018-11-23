@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>群组管理</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+</head>
+<body>
+<div class="container" id="app">
+    <h1 align="center" style="margin-top: 100px;">添加群组</h1>
+    <div class="form-group">
+        <label for="gname">群组名称:</label>
+        <input type="text" class="form-control" id="gname" v-model="gname">
+    </div>
+    <div class="form-group">
+        <label for="owner">群主账号:</label>
+        <input type="text" v-on:blur="queryUser" class="form-control" id="owner" v-model="owner">
+    </div>
+    <div class="form-group">
+        <label for="desc">群描述:</label>
+        <input type="text" class="form-control" id="desc" v-model="desc">
+    </div>
+    <div class="form-group" style="margin-top: 35px;">
+        <button type="button" class="btn btn-info btn-block btn-lg" v-on:click="submit_add_group">添加</button>
+    </div>
+</div>
+<script>
+var vm = new Vue({
+    el:"#app",
+    data:{
+        owner:"", // 群主账号
+        gname:"", // 群名称
+        desc:"", // 群描述
+    },
+    methods:{
+        queryUser:function(){
+            console.log("owner = "+this.owner);
+            $.get("/user/query/"+this.owner,function(result){
+                if (result == null || result == "") {
+                    alert("不可用指定群主为未注册的账号！！");
+                }
+            });
+        },
+        submit_add_group:function () {
+            var owner = this.owner;
+            var gname = this.gname;
+            var desc = this.desc;
+            if(owner == "" || gname == "" || desc == "") {
+                alert("请完善创建群的信息！！");return;
+            }
+            $.post("/addgroup",{"owner":owner,"gname":gname,"desc":desc},function(result){
+                console.log(result);
+                if (result.code == 0 || result.code == "0") {
+                    alert("群组创建成功！！");
+                } else {
+                    alert("创建群组异常，请及时联系管理员！");
+                }
+            });
+        }
+    }
+});
+</script>
+</body>
+</html>

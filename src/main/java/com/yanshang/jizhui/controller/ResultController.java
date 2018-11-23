@@ -109,7 +109,7 @@ public class ResultController {
         System.out.println(list.size());
         Map<String, Integer> map = new HashMap<String, Integer>();
         if (ResultRepository.STATE_OPEN.equals(state)) {
-            rr.setCode(1);
+            rr.setCode(0);
             rr.setData(null);
             rr.setMessage("数据正在获取中...");
             System.out.println("当前正在传输" + list.size() + "条数据!!!");
@@ -160,9 +160,8 @@ public class ResultController {
             rr.setMessage("获取指导意见成功!");
             StringBuffer stringBuffer = new StringBuffer();
             /*********************检查开始*********************/
-
             // 脊柱节，测试号数组
-            String sensorsCodes = (list3 == null && list3.isEmpty()) ? list.get(0).getResult() : list3.get(0);
+            String sensorsCodes = (list3 == null || list3.isEmpty()) ? list.get(0).getResult() : list3.get(0);
             char[] sensorsCodeArray = sensorsCodes.toCharArray();
             boolean checkOver = false;
             String checkMessage = "";

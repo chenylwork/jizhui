@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+<title>专家管理页面</title>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/icon.css"></link>
+<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.min.js"></script>
+<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="/static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+    
+
+
+</head>
+<body>
+	<table id="dg" title="查看所有专家" class="easyui-datagrid" fitColumns="true"
+		pagination="true" rownumbers="true" url="/allusers"
+		fit="true" toolbar="#tb">
+		<thead>
+			<tr>
+				<th field="cb" checkbox="true" align="center"></th>
+				<th field="id" width="20" align="center">编号</th>
+			<!--	<th field="username" width="20" align="center">账号</th>	-->
+				<th data-options="field:'image',width:20,height:20,formatter:showImg">头像</th>
+				<th field="nickname" width="100" align="center">专家名称</th>
+				<th field="sex" width="100" align="center">性别</th>
+				<th field="age" width="100" align="center">年龄</th>
+			</tr>
+		</thead>
+	</table>
+	<!-- CRUD 菜单栏 -->
+	<div id="tb">
+		<div>
+			<!--plain="true"去掉边框-->
+			<a
+				href="javascript:deleteLink()" class="easyui-linkbutton"
+				iconCls="icon-remove" plain="true">删除</a>
+		</div>
+	</div>
+	<!-- 修改框内容 -->
+	<script type="text/javascript">
+		/* 这个 url 经常要用到：add 中的 save，edit 中的 save，独立出来共享 */
+		var url;
+		/* 3、删除用户 */
+		function deleteLink() {
+			var selectedRows = $("#dg").datagrid("getSelections");
+			if (selectedRows.length == 0) {
+				$.messager.alert("系统提示", "请选择要删除的数据！");
+				return;
+			}
+			var strIds = [];
+			/*SpringBoot 小于号要求*/
+			for (var i = 0; i < selectedRows.length; i++) {
+				strIds.push(selectedRows[i].id);
+			}
+			/* 转化 "1,2,3" 这种格式  */
+			var ids = strIds.join(",");
+			$.messager.confirm("系统提示", "您确定要删除这<font color='red'>" + selectedRows.length + "</font>条数据吗？", function(r) {
+				if (r) {
+					$.post("/deluser", {
+						ids : ids
+					}, function(result) {
+						/* 后台传来一个true */
+						if (result.success) {
+							$.messager.alert("系统提示", "数据已成功删除！");
+							/*数据变动，需要重新加载数据，作用类似刷新网页*/
+							$("#dg").datagrid("reload");
+						} else {
+							$.messager.alert("系统提示", "数据删除失败，请联系管理员！");
+						}
+					}, "json");
+				}
+			});
+		}
+		/* save 保存操作，位于 add、edit 中 */
+		function saveLink() {
+			$("#fm").form("submit", {
+				url : url,
+				onSubmit : function() {
+					/*前端验证，再次使用EasyUI 提供的校验 class*/
+					return $(this).form("validate");
+				},
+				success : function(result) {
+					var result = eval('(' + result + ')');
+					/* 后台传来一个true */
+					if (result.success) {
+						$.messager.alert("系统提示", "保存成功！");
+						resetValue();
+						$("#dlg").dialog("close");
+						/*数据变动，需要重新加载数据，作用类似刷新网页*/
+						$("#dg").datagrid("reload");
+					}
+				}
+			});
+		}
+		/* 清空表单数据 */
+		function resetValue() {
+			$("#id").val("");
+			$("#code").val("");
+			$("#content").val("");
+		}
+		/* 关闭对话框 */
+		function closeLinkDialog() {
+			resetValue();
+			$("#dlg").dialog("close");
+		}
+		/* 4、增加搜索 */
+		function searchWebSite() {
+			$("#dg").datagrid("load", {
+				code : $("#scode").val()
+			})
+		}
+		//图片展示
+		function showImg(value, row, index){
+			if(row.image){
+				return "<img style='width:100px;height:100px;' border='1' src='"+row.image+"'/>";
+			}
+		}
+	</script>
+</body>
+</html>

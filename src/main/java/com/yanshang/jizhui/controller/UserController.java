@@ -1,31 +1,5 @@
 package com.yanshang.jizhui.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javax.annotation.Resource;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yanshang.jizhui.bean.Result;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.yanshang.jizhui.bean.Group;
-import com.yanshang.jizhui.bean.User;
-import com.yanshang.jizhui.service.GroupService;
-import com.yanshang.jizhui.service.UserService;
-import com.yanshang.jizhui.util.ResultString;
-import com.yanshang.jizhui.util.SmsClientSend;
-import com.yanshang.jizhui.util.TimeTools;
-
 import cn.jiguang.common.resp.APIConnectionException;
 import cn.jiguang.common.resp.APIRequestException;
 import cn.jiguang.common.resp.ResponseWrapper;
@@ -36,7 +10,23 @@ import cn.jmessage.api.group.CreateGroupResult;
 import cn.jmessage.api.message.SendMessageResult;
 import cn.jmessage.api.user.UserClient;
 import cn.jmessage.api.user.UserInfoResult;
+import com.yanshang.jizhui.bean.Group;
+import com.yanshang.jizhui.bean.User;
+import com.yanshang.jizhui.service.GroupService;
+import com.yanshang.jizhui.service.UserService;
+import com.yanshang.jizhui.util.ResultString;
+import com.yanshang.jizhui.util.SmsClientSend;
+import com.yanshang.jizhui.util.TimeTools;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import redis.clients.jedis.Jedis;
+
+import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 @RestController
 public class UserController {
@@ -57,9 +47,85 @@ public class UserController {
     private UserService userService;
     @Resource
     private GroupService groupService;
+
+    /**
+     * 根据用户名获取用户信息
+     * @param username
+     * @return
+     */
     @RequestMapping("/user/query/{username}")
     public User queryResult(@PathVariable("username") String username) {
         return userService.finduserbyusername(username);
+    }
+
+    /**
+     * 注册专家
+     * @param user
+     * @return
+     */
+    @RequestMapping("/user/add/expert")
+    public int addExpert(User user, MultipartFile file) {
+        int userId = (user.getId() != null && user.getId() != 0) ? user.getId() : 0 ;
+        System.out.println(user);
+        int result = 1; // 出错
+        user.setRolename("专家");
+        User oldUser = userService.finduserbyusername(user.getUsername());
+        if (userId == 0) {
+            if (oldUser == null) {
+                user.setImage(uploadImg(file)); // 保存图片
+                userService.save(user);
+                List<RegisterInfo> users = new ArrayList<RegisterInfo>();
+                // 极光注册
+                RegisterInfo user1 = RegisterInfo.newBuilder().setUsername(user.getUsername()).setPassword(password).build();
+                try {//注册admin
+                    ResponseWrapper res = userclient.registerAdmins(user1);
+                    users.add(user1);
+                    result =  0; // 成功注册
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                result = 2;
+            }
+        } else {
+            if (oldUser == null) {
+                return 3; // 需要修改的账号不存在
+            }
+            if (file != null && !file.isEmpty()) {
+                user.setImage(uploadImg(file)); // 保存图片
+            } else {
+                user.setImage(oldUser.getImage());
+            }
+            userService.save(user);
+            return 4; // 修改成功
+        }
+        return result;
+    }
+    @RequestMapping("/user/query/page")
+    public Map<String,Object> userPageQuery(@RequestParam(value = "page",defaultValue = "1") String pageNo,
+                                    @RequestParam(value = "pagesize",defaultValue = "10") String rows,User user) {
+        System.out.println(user);
+        Page<User> users = userService.pageFindExpert(user, new PageRequest(Integer.parseInt(pageNo) - 1, Integer.parseInt(rows)));
+        Map<String,Object> map = new HashMap<>();
+        map.put("rows", users.getContent());
+        map.put("total", users.getSize());
+        return map;
+    }
+    private String uploadImg(MultipartFile img) {
+        String image = "";
+        String fileName = System.currentTimeMillis() + img.getOriginalFilename();
+        System.out.println(fileName);
+        String destFileName = "D:/imgs/" + File.separator + fileName;
+        File destFile = new File(destFileName);
+        destFile.getParentFile().mkdirs();
+        image= "http://211.149.194.181:80/image/" + fileName;
+        try {
+            img.transferTo(destFile);
+            System.out.println(destFile);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        return image;
     }
 
     @RequestMapping("/register")
@@ -68,15 +134,11 @@ public class UserController {
         ResultString<Void> rr = new ResultString<>();
         User user = new User();
         if (userService.finduserbyusername(username) == null) {
-
-
             user.setPassword(password);
             user.setUsername(username);
             userService.save(user);
             List<RegisterInfo> users = new ArrayList<RegisterInfo>();
             RegisterInfo user1 = RegisterInfo.newBuilder().setUsername(username).setPassword(password).build();
-
-
             try {//注册admin
                 ResponseWrapper res =
                         userclient.registerAdmins(user1);
@@ -95,7 +157,6 @@ public class UserController {
             rr.setCode(1);
             rr.setMessage("用户名已存在!");
         }
-
         return rr;
 
     }
@@ -119,21 +180,12 @@ public class UserController {
             } else {
                 rr.setCode(1);
                 rr.setMessage("密码错误!");
-
             }
-
-
         } else {
             rr.setCode(1);
             rr.setMessage("用户名不存在!!");
-
-
         }
-
-
         return rr;
-
-
     }
 
     /**
@@ -143,15 +195,13 @@ public class UserController {
     @ResponseBody
     public ResultString<Void> del(String username) {
         ResultString<Void> rr = new ResultString<>();
-
         try {
-            client.deleteUser(username);
             User user = userService.finduserbyusername(username);
             if (user == null) {
                 rr.setCode(1);
                 rr.setMessage("用户名不存在");
-
             } else {
+//                client.deleteUser(username);
                 userService.del(user.getId());
                 client.deleteUser(user.getUsername());
                 rr.setCode(0);
@@ -165,8 +215,6 @@ public class UserController {
             e.printStackTrace();
         }
         return rr;
-
-
     }
 
     /**
@@ -194,9 +242,12 @@ public class UserController {
 
 
     }
-
     /**
      * 创建群组
+     * @param owner 群主username
+     * @param gname 群组名字
+     * @param desc 群描述
+     * @return
      */
     @RequestMapping("/addgroup")
     @ResponseBody
@@ -331,25 +382,26 @@ public class UserController {
      */
     @RequestMapping("/getallexperts")
     @ResponseBody
-    public ResultString<String> findallexperts() {
-        ResultString<String> rr = new ResultString<>();
+    public ResultString<Map<String, Object>> findallexperts() {
+        ResultString<Map<String, Object>> resultString = new ResultString<>();
         List<User> list = userService.finduserbytype();
-        JsonArray json = new JsonArray();
+        List<Map<String,String>> resultList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            JsonObject jsonobj = new JsonObject();
-            jsonobj.addProperty("username", list.get(i).getUsername());
-            jsonobj.addProperty("image", list.get(i).getImage());
-            jsonobj.addProperty("phone", list.get(i).getPhone());
-            jsonobj.addProperty("nickname", list.get(i).getNickname());
-            System.out.println(json);
-            json.add(jsonobj);
-
+            Map<String,String> map = new HashMap<>();
+            map.put("username", list.get(i).getUsername());
+            map.put("image", list.get(i).getImage());
+            map.put("phone", list.get(i).getPhone());
+            map.put("nickname", list.get(i).getNickname());
+            System.out.println(map);
+            resultList.add(map);
         }
-        System.out.println(json);
-        rr.setCode(0);
-        rr.setData(json.toString());
-        rr.setMessage("获取专家成功");
-        return rr;
+        Map<String,Object> map = new HashMap<>();
+        map.put("users",resultList);
+        System.out.println(resultList);
+        resultString.setCode(0);
+        resultString.setData(map);
+        resultString.setMessage("获取专家成功");
+        return resultString;
 
 
     }

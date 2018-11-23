@@ -2,121 +2,263 @@
 
 <html>
 <head>
-<title>专家管理页面</title>
-<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
-<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
-<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/icon.css"></link>
-<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.min.js"></script>
-<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
-<script type="text/javascript" src="/static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
-    
-
-
+	<title>脊柱后台管理</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/default/easyui.css"></link>
+	<link rel="stylesheet" type="text/css" href="/static/jquery-easyui-1.3.3/themes/icon.css"></link>
+	<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-easyui-1.3.3/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="/static/jquery-easyui-1.3.3/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="js/vue.js"></script>
+	<style type="text/css">
+		#head-img-box{position: absolute; top:50px; right:50px;width: 251px; height: 251px; overflow: hidden;border: 1px solid #000;}
+		#head-img{position: relative; top:0px; right:0px;}
+		.panel-body{font-size: 20px;}
+	</style>
 </head>
 <body>
-	<table id="dg" title="查看所有专家" class="easyui-datagrid" fitColumns="true"
-		pagination="true" rownumbers="true" url="/allusers"
-		fit="true" toolbar="#tb">
-		<thead>
-			<tr>
-				<th field="cb" checkbox="true" align="center"></th>
-				<th field="id" width="20" align="center">编号</th>
-			<!--	<th field="username" width="20" align="center">账号</th>	-->
-				<th data-options="field:'image',width:20,height:20,formatter:showImg">头像</th>
-				<th field="nickname" width="100" align="center">专家名称</th>
-				<th field="sex" width="100" align="center">性别</th>
-				<th field="age" width="100" align="center">年龄</th>
-			</tr>
-		</thead>
-	</table>
-	<!-- CRUD 菜单栏 -->
-	<div id="tb">
-		<div>
-			<!--plain="true"去掉边框-->
-			<a
-				href="javascript:deleteLink()" class="easyui-linkbutton"
-				iconCls="icon-remove" plain="true">删除</a>
-		</div>
+<table id="dg" title="专家列表" class="easyui-datagrid" fitColumns="true"
+	   pagination="true" rownumbers="true" url="/user/query/page"
+	   fit="true" toolbar="#tb">
+	<thead>
+	<tr>
+		<th field="cb" checkbox="true" align="center"></th>
+		<th field="id" width="20" align="center">编号</th>
+		<th field="username" width="20" align="center">登录账号</th>
+		<th field="nickname" width="20" align="center">专家名称</th>
+		<th field="phone" width="20" align="center">专家电话)</th>
+		<th field="sex" width="20" align="center">专家性别</th>
+		<th data-options="field:'image',width:100, formatter:showImg">专家头像</th>
+	</tr>
+	</thead>
+</table>
+<!-- CRUD 菜单栏 -->
+<div id="tb">
+	<div>
+		<!--plain="true"去掉边框-->
+		<a href="javascript:openLinkAddDialog()" class="easyui-linkbutton"
+		   iconCls="icon-add" plain="true">添加</a> <a
+			href="javascript:openLinkModifyDialog()" class="easyui-linkbutton"
+			iconCls="icon-edit" plain="true">修改</a> <a
+			href="javascript:deleteLink()" class="easyui-linkbutton"
+			iconCls="icon-remove" plain="true">删除</a>
 	</div>
-	<!-- 修改框内容 -->
-	<script type="text/javascript">
-		/* 这个 url 经常要用到：add 中的 save，edit 中的 save，独立出来共享 */
-		var url;
-		/* 3、删除用户 */
-		function deleteLink() {
-			var selectedRows = $("#dg").datagrid("getSelections");
-			if (selectedRows.length == 0) {
-				$.messager.alert("系统提示", "请选择要删除的数据！");
-				return;
-			}
-			var strIds = [];
-			/*SpringBoot 小于号要求*/
-			for (var i = 0; i < selectedRows.length; i++) {
-				strIds.push(selectedRows[i].id);
-			}
-			/* 转化 "1,2,3" 这种格式  */
-			var ids = strIds.join(",");
-			$.messager.confirm("系统提示", "您确定要删除这<font color='red'>" + selectedRows.length + "</font>条数据吗？", function(r) {
-				if (r) {
-					$.post("/deluser", {
-						ids : ids
-					}, function(result) {
-						/* 后台传来一个true */
-						if (result.success) {
-							$.messager.alert("系统提示", "数据已成功删除！");
-							/*数据变动，需要重新加载数据，作用类似刷新网页*/
-							$("#dg").datagrid("reload");
-						} else {
-							$.messager.alert("系统提示", "数据删除失败，请联系管理员！");
-						}
-					}, "json");
+	<div>
+		专家名称： <input style="width: 100px" name="nickname" id="search_nickname" />
+		专家电话： <input style="width: 100px" name="phone" id="search_phone" />
+		<a href="javascript:searchWebSite()" class="easyui-linkbutton" iconCls="icon-search">搜索</a>
+	</div>
+</div>
+<!-- 修改框内容 -->
+<div id="dlg" class="easyui-dialog" style="width: 700px; height: 400px; padding: 10px 20px" closed="true" buttons="#dlg-buttons">
+	<form id="fm" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="password" id="password" value="123456" />
+		<table cellspacing="8px">
+
+			<tr>
+				<td>专家账号：</td>
+				<td><input type="text" id="username" name="username"
+						   class="easyui-validatebox" required="true" /></td>
+			</tr>
+			<tr>
+				<td>专家名称：</td>
+				<td><input type="text" id="nickname" name="nickname"
+						   class="easyui-validatebox" required="true" /></td>
+			</tr>
+			<tr>
+				<td>专家头像：</td>
+				<td><input type="file" id="file" name="file"
+						   class="easyui-validatebox" multiple="multiple" /></td>
+			</tr>
+
+			<tr>
+				<td>专家电话：</td>
+				<td><input type="text" id="price" name="phone"
+						   class="easyui-validatebox" required="true" /></td>
+			</tr>
+			<tr>
+				<td>专家性别：</td>
+				<td>
+					<select name="sex" id="sex" >
+						<option value="男">男</option>
+						<option value="女">女</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>专家年龄：</td>
+				<td>
+					<input type="text" id="age" name="age"
+						   class="easyui-validatebox" required="true" />
+				</td>
+			</tr>
+		</table>
+	</form>
+	<div id="head-img-box">
+	<img id="head-img" v-bind:src="user.image == '' ? 'images/head.jpg' : user.image" width="250" height="250" alt="专家头像"/>
+	</div>
+</div>
+<!-- 修改对话框的 save、close 按钮 -->
+<div id="dlg-buttons">
+	<a href="javascript:saveLink()" class="easyui-linkbutton" iconCls="icon-ok">保存</a>
+	<a href="javascript:closeLinkDialog()" class="easyui-linkbutton" iconCls="icon-cancel">关闭</a>
+</div>
+<script type="text/javascript">
+$(function(){
+    $('#file').change(function() {
+        console.log("文件修改！！！")
+        var file = $(this).prop('files')[0];
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function(f){
+            var src = "data:" + file.type + ";base64," + window.btoa(this.result);
+            $("#head-img").attr("src",src);
+        }
+    });
+});
+</script>
+<script type="text/javascript">
+    var user = {image:""};
+    var vm = new Vue({
+        el:"#dlg",
+        data:{
+            user:user
+        }
+    });
+</script>
+<script type="text/javascript">
+    /* 这个 url 经常要用到：add 中的 save，edit 中的 save，独立出来共享 */
+    var url;
+    var img_url;
+
+    /* 1、添加用户 */
+    function openLinkAddDialog() {
+        $("#dlg").dialog("open").dialog("setTitle", "添加专家信息");
+        // url = "/admin/addsalt";
+        url = "/user/add/expert";
+    }
+
+    /* 2、修改用户 */
+    function openLinkModifyDialog() {
+        var selectedRows = $("#dg").datagrid("getSelections");
+        if (selectedRows.length != 1) {
+            $.messager.alert("系统提示", "请选择一条要编辑的数据！");
+            return;
+        }
+        var row = selectedRows[0];
+        /*EasyUI 回显信息*/
+        $("#fm").form("load", row);
+        $("#dlg").dialog("open").dialog("setTitle", "编辑专家信息");
+        url = "/user/add/expert?id=" + row.id;
+        img_url = row.image;
+        Vue.set(user,"image",img_url);
+        console.log(img_url);
+    }
+
+    /* 3、删除用户 */
+    function deleteLink() {
+        var selectedRows = $("#dg").datagrid("getSelections");
+        if (selectedRows.length == 0) {
+            $.messager.alert("系统提示", "请选择要删除的数据！");
+            return;
+        }
+        var strIds = [];
+        /*SpringBoot 小于号要求*/
+        for (var i = 0; i < selectedRows.length; i++) {
+            strIds.push(selectedRows[i].username);
+        }
+        /* 转化 "1,2,3" 这种格式  */
+        var ids = strIds.join(",");
+        console.log("删除个数"+strIds.length);
+        console.log("删除的账号"+strIds[0]);
+        if (strIds.length > 1) {
+         	alert("一次只可以删除一个专家！！");
+         	return;
+		}
+        $.messager.confirm("系统提示", "您确定要删除这<font color='red'>" + selectedRows.length + "</font>条数据吗？", function(r) {
+            if (r) {
+                $.post("/del", {
+                    username : strIds[0]
+                }, function(result) {
+                    console.log(result);
+                    /* 后台传来一个true */
+                    if (result.code == 0 || result.code == "0") {
+                        $.messager.alert("系统提示", "数据已成功删除！");
+                        /*数据变动，需要重新加载数据，作用类似刷新网页*/
+                        $("#dg").datagrid("reload");
+                    } else {
+                        $.messager.alert("系统提示", "数据删除失败，请联系管理员！");
+                    }
+                }, "json");
+            }
+        });
+    }
+
+    /* save 保存操作，位于 add、edit 中 */
+    function saveLink() {
+        $("#fm").form("submit", {
+            url : url,
+            onSubmit : function() {
+                /*前端验证，再次使用EasyUI 提供的校验 class*/
+                return $(this).form("validate");
+            },
+            success : function(result) {
+                console.log("返回信息为："+result);
+                // var result = eval('(' + result + ')');
+                /* 后台传来一个true */
+                if (result == 0 || result == "0") {
+                    $.messager.alert("系统提示", "添加成功！默认密码为"+$("#password").val());
+                }
+                if (result == 1 || result == "1") {
+                    $.messager.alert("系统提示","保存失败！！请联系管理员");
 				}
-			});
-		}
-		/* save 保存操作，位于 add、edit 中 */
-		function saveLink() {
-			$("#fm").form("submit", {
-				url : url,
-				onSubmit : function() {
-					/*前端验证，再次使用EasyUI 提供的校验 class*/
-					return $(this).form("validate");
-				},
-				success : function(result) {
-					var result = eval('(' + result + ')');
-					/* 后台传来一个true */
-					if (result.success) {
-						$.messager.alert("系统提示", "保存成功！");
-						resetValue();
-						$("#dlg").dialog("close");
-						/*数据变动，需要重新加载数据，作用类似刷新网页*/
-						$("#dg").datagrid("reload");
-					}
+				if (result == 2 || result == "2") {
+                    $.messager.alert("系统提示","该账号已存在，不可重复创建！！");
+                    return;
 				}
-			});
-		}
-		/* 清空表单数据 */
-		function resetValue() {
-			$("#id").val("");
-			$("#code").val("");
-			$("#content").val("");
-		}
-		/* 关闭对话框 */
-		function closeLinkDialog() {
-			resetValue();
-			$("#dlg").dialog("close");
-		}
-		/* 4、增加搜索 */
-		function searchWebSite() {
-			$("#dg").datagrid("load", {
-				code : $("#scode").val()
-			})
-		}
-		//图片展示
-		function showImg(value, row, index){
-			if(row.image){
-				return "<img style='width:100px;height:100px;' border='1' src='"+row.image+"'/>";
-			}
-		}
-	</script>
+                if (result == 3 || result == "3") {
+                    $.messager.alert("系统提示","需要修改的账户不存在！！");
+                }
+                if (result == 4 || result == "4") {
+                    $.messager.alert("系统提示","专家信息修改成功！！");
+                }
+                resetValue();
+                $("#dlg").dialog("close");
+                /*数据变动，需要重新加载数据，作用类似刷新网页*/
+                $("#dg").datagrid("reload");
+            }
+        });
+    }
+    /* 清空表单数据 */
+    function resetValue() {
+        $("#id").val("");
+        $("#typename").val("");
+        $("#createtime").val("");
+        $("#createuser").val("");
+    }
+
+    /* 关闭对话框 */
+    function closeLinkDialog() {
+        resetValue();
+        $("#dlg").dialog("close");
+    }
+    /* 4、增加搜索 */
+    function searchWebSite() {
+        $("#dg").datagrid("load", {
+            nickname : $("#search_nickname").val(),
+            phone : $("#search_nickname").val(),
+        })
+    }
+    // /图片展示
+    function showImg(value, row, index){
+        if(row.image){
+            return "<img style='width:200px;height:200px;' border='1' src='"+row.image+"'/>";
+        }
+    }
+</script>
+
 </body>
+
+
 </html>

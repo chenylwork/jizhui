@@ -41,30 +41,20 @@ public class PCController {
             if (userService.finduserbyusername(username).getPassword().equals(password) &&
                     userService.finduserbyusername(username).getUsername().equals("admin")) {
                 return "index.html";
-
-
             } else {
                 map.put("message", "密码错误!!!");
-
             }
-
         }
-
-
         return "error.html";
-
-
     }
 
     @RequestMapping("/main1")
     public String index5() {
-
         return "log";
     }
 
     @RequestMapping("/loginadmin")
     public String index() {
-
         return "log";
     }
 
@@ -88,6 +78,11 @@ public class PCController {
         return "user";
     }
 
+    @RequestMapping("/getgroup")
+    public String group() {
+        return "group";
+    }
+
     @ResponseBody
     @RequestMapping("/allusers")
     public Map<String, Object> findall() {
@@ -96,8 +91,6 @@ public class PCController {
         map.put("rows", list);
         map.put("total", list.size());
         return map;
-
-
     }
 
     @ResponseBody
@@ -106,12 +99,10 @@ public class PCController {
         Map<String, Object> map = new HashMap<>();
         String[] idsStr = ids.split(",");
         for (int i = 0; i < idsStr.length; i++) {
-
             try {
                 client.deleteUser(userRepository.getOne(Integer.parseInt(idsStr[i])).getUsername());
                 userService.del(Integer.parseInt(idsStr[i]));
                 map.put("success", true);
-
             } catch (NumberFormatException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -122,13 +113,8 @@ public class PCController {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
         }
-
-
         return map;
-
-
     }
 
     @RequestMapping("/experts")
@@ -146,7 +132,5 @@ public class PCController {
             map.put("success", false);
         }
         return map;
-
-
     }
 }

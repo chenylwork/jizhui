@@ -31,9 +31,9 @@ public class Group {
     private String descr; // 备注描述
     private String ownerusername; // 所有者用户名
     private Integer maxmembercount; // 最大成员数
-    private String ctime; //
-    private String mtime; //
-    private String avatar; //
+    private String ctime; // 群创建时间
+    private String mtime; // 最后一次修改时间
+    private String avatar; // 群头像
 
 
 }

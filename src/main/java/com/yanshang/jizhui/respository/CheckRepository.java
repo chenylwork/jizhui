@@ -16,6 +16,6 @@ import java.util.List;
  **/
 public interface CheckRepository extends JpaRepository<Check,Integer>,JpaSpecificationExecutor<Check> {
 
-    @Query(value = "SELECT * FROM t_check WHERE username = ?1",nativeQuery = true)
+    @Query(value = "SELECT * FROM t_check WHERE username = ?1 order by `time` DESC ",nativeQuery = true)
     List<Check> findAllByUserName(String username);
 }
