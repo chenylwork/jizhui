@@ -7,6 +7,7 @@ import cn.jmessage.api.JMessageClient;
 import cn.jmessage.api.common.model.RegisterInfo;
 import cn.jmessage.api.common.model.message.MessageBody;
 import cn.jmessage.api.group.CreateGroupResult;
+import cn.jmessage.api.group.GroupListResult;
 import cn.jmessage.api.message.SendMessageResult;
 import cn.jmessage.api.resource.UploadResult;
 import cn.jmessage.api.user.UserClient;
@@ -247,6 +248,11 @@ public class UserController {
         }
 
         return rr;
+    }
+    @RequestMapping("/group/load/all")
+    public GroupListResult loadGroups() throws APIConnectionException, APIRequestException {
+        GroupListResult groupList = client.getGroupListByAppkey(0, 20);
+        return groupList;
     }
 
     /**
