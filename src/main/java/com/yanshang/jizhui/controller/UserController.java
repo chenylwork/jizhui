@@ -8,6 +8,7 @@ import cn.jmessage.api.common.model.RegisterInfo;
 import cn.jmessage.api.common.model.message.MessageBody;
 import cn.jmessage.api.group.CreateGroupResult;
 import cn.jmessage.api.message.SendMessageResult;
+import cn.jmessage.api.resource.UploadResult;
 import cn.jmessage.api.user.UserClient;
 import cn.jmessage.api.user.UserInfoResult;
 import com.yanshang.jizhui.bean.Group;
@@ -17,6 +18,9 @@ import com.yanshang.jizhui.service.UserService;
 import com.yanshang.jizhui.util.ResultString;
 import com.yanshang.jizhui.util.SmsClientSend;
 import com.yanshang.jizhui.util.TimeTools;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +35,8 @@ import java.util.*;
 @RestController
 public class UserController {
 
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
+
     private static String appkey = "72ea33c57d792065597bfef0";
     private static String masterSecret = "1cd07f744ff937afd8d949b1";
     public static String url = "http://www.qf106.com/sms.aspx?action=send";
@@ -40,6 +46,8 @@ public class UserController {
     public static String checkWord = "这个字符串中是否包含了屏蔽字";
     public static final String prefix = "您的验证码是：";
     public static final String suffix = ". 如非本人操作请忽略本条信息";
+    @Value("${upload.file.buffer.path}")
+    private String uploadPath;
 
     JMessageClient client = new JMessageClient(appkey, masterSecret);
     private UserClient userclient = new UserClient(appkey, masterSecret);
@@ -239,24 +247,60 @@ public class UserController {
         }
 
         return rr;
+    }
 
-
+    /**
+     * 极光上传文件
+     * @param uploadPath
+     * @return
+     */
+    private String uploadJFile(String uploadPath) {
+        String mediaId = "";
+        try {
+            UploadResult result = client.uploadFile("");
+            mediaId = result.getMediaId();
+        } catch (APIConnectionException e) {
+            e.printStackTrace();
+        } catch (APIRequestException e) {
+            e.printStackTrace();
+        }
+        return mediaId;
     }
     /**
      * 创建群组
      * @param owner 群主username
      * @param gname 群组名字
      * @param desc 群描述
+     * @param file 群头像
      * @return
      */
     @RequestMapping("/addgroup")
     @ResponseBody
-    public ResultString<Void> addgroup(String owner, String gname, String desc) {
+    public ResultString<Void> addgroup(String owner, String gname, String desc,MultipartFile file) {
         ResultString<Void> rr = new ResultString<>();
+        String filePath = "";
+        String avatar = "";
         try {
-            CreateGroupResult result = client.createGroup(owner, gname, desc, null, 1, owner);
+            String filename = file.getOriginalFilename();
+            filePath = uploadPath+"/"+filename;
+            file.transferTo(new File(filePath));
+            avatar =  uploadJFile(filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (avatar == null || avatar.equals("")) {
+            rr.setCode(1);
+            rr.setMessage("创建群组失败!!");
+            logger.info("创建群组极光上传群组头像失败");
+            logger.info("上传的文件是否为空："+file.isEmpty());
+            logger.info("上传的文件地址："+filePath);
+            return rr;
+        }
+        try {
+            CreateGroupResult result = client.createGroup(owner, gname, desc, avatar, 1, owner);
             Group group = new Group();
             group.setDescr(desc);
+            group.setAvatar(avatar);
             group.setMaxmembercount(500);
             group.setGroupid(result.getGid().toString());
             group.setOwnerusername(owner);

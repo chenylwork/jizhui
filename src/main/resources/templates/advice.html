@@ -32,15 +32,12 @@
 	<div id="tb">
 		<div>
 			<!--plain="true"去掉边框-->
-			<a href="javascript:openLinkAddDialog()" class="easyui-linkbutton"
-				iconCls="icon-add" plain="true">添加</a> <a
-				href="javascript:openLinkModifyDialog()" class="easyui-linkbutton"
-				iconCls="icon-edit" plain="true">修改</a> <a
-				href="javascript:deleteLink()" class="easyui-linkbutton"
-				iconCls="icon-remove" plain="true">删除</a>
+			<!--<a href="javascript:openLinkAddDialog()" class="easyui-linkbutton" iconCls="icon-add" plain="true">添加</a>-->
+			<a href="javascript:openLinkModifyDialog()" class="easyui-linkbutton" iconCls="icon-edit" plain="true">修改</a>
+			<!--<a href="javascript:deleteLink()" class="easyui-linkbutton" iconCls="icon-remove" plain="true">删除</a>-->
 		</div>
 		<div>
-			 编码：<input style="width: 100px" name="scode" id="scode" />
+			编码：<input style="width: 100px" name="scode" id="scode" />
 			<a href="javascript:searchWebSite()" class="easyui-linkbutton" iconCls="icon-search">搜索</a>
 		</div>
 	</div>
@@ -49,6 +46,10 @@
 		<form id="fm" method="post">
 			<table cellspacing="8px">
 				<tr>
+					<td>级别</td>
+					<td><input name="level" clos="200"  rows="5" readonly/></td>
+				</tr>
+				<tr>
 					<td>编码：</td>
 					<td><input type="text" id="code" name="code" 
 						class="easyui-validatebox" required="true"
@@ -56,12 +57,8 @@
 						  onkeyup="(this.v=function(){this.value=this.value.replace(/[^0-9-]+/,'');}).call(this)" onblur="this.v();" /></td>
 				</tr>
 				<tr>
-					<td>结果</td>
-					<td><textarea name="content" clos="200"  rows="5"></textarea></td>
-				</tr>
-				<tr>
 					<td>指导意见</td>
-					<td><textarea name="message" clos="200"  rows="5"></textarea></td>
+					<td><textarea name="content" clos="200"  rows="5"></textarea></td>
 				</tr>
 			</table>
 		</form>
@@ -131,6 +128,7 @@
 				url : url,
 				onSubmit : function() {
 					/*前端验证，再次使用EasyUI 提供的校验 class*/
+					console.log($(this).form("validate")+"");
 					return $(this).form("validate");
 				},
 				success : function(result) {

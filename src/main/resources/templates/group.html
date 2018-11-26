@@ -9,24 +9,88 @@
     <script type="text/javascript" src="js/vue.js"></script>
 </head>
 <body>
-<div class="container" id="app">
-    <h1 align="center" style="margin-top: 100px;">添加群组</h1>
-    <div class="form-group">
-        <label for="gname">群组名称:</label>
-        <input type="text" class="form-control" id="gname" v-model="gname">
-    </div>
-    <div class="form-group">
-        <label for="owner">群主账号:</label>
-        <input type="text" v-on:blur="queryUser" class="form-control" id="owner" v-model="owner">
-    </div>
-    <div class="form-group">
-        <label for="desc">群描述:</label>
-        <input type="text" class="form-control" id="desc" v-model="desc">
-    </div>
-    <div class="form-group" style="margin-top: 35px;">
-        <button type="button" class="btn btn-info btn-block btn-lg" v-on:click="submit_add_group">添加</button>
+<div class="container">
+    <h1 align="center" style="margin: 25px 0">
+        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal" style="float:left;">
+            添加群组
+        </button>
+        群列表
+        <!-- 按钮：用于打开模态框 -->
+    </h1>
+    <table class="table table-hover table-bordered">
+        <thead>
+        <tr>
+            <th>群头像</th>
+            <th>群组名称</th>
+            <th>群主账号</th>
+            <th>群描述</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>群头像</td>
+            <td>群组名称</td>
+            <td>群主账号</td>
+            <td>群描述</td>
+        </tr>
+        <tr>
+            <td>群头像</td>
+            <td>群组名称</td>
+            <td>群主账号</td>
+            <td>群描述</td>
+        </tr>
+        <tr>
+            <td>群头像</td>
+            <td>群组名称</td>
+            <td>群主账号</td>
+            <td>群描述</td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <!-- 模态框 -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- 模态框头部 -->
+                <div class="modal-header">
+                    <h4 class="modal-title">群组添加</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <!-- 模态框主体 -->
+                <div class="modal-body">
+                    <div class="container" id="app">
+                        <div class="form-group">
+                            <label for="gname">群组名称:</label>
+                            <input type="text" class="form-control" id="gname" v-model="gname">
+                        </div>
+                        <div class="form-group">
+                            <label for="owner">群主账号:</label>
+                            <input type="text" v-on:blur="queryUser" class="form-control" id="owner" v-model="owner">
+                        </div>
+                        <div class="form-group">
+                            <label for="desc">群描述:</label>
+                            <input type="text" class="form-control" id="desc" v-model="desc">
+                        </div>
+                        <div class="form-group" style="margin-top: 35px;">
+                            <button type="button" class="btn btn-info btn-block btn-lg" v-on:click="submit_add_group">添加</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 模态框底部 -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
+
 <script>
 var vm = new Vue({
     el:"#app",

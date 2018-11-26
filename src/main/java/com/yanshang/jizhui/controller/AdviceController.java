@@ -6,6 +6,8 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,8 @@ import com.yanshang.jizhui.service.AdviceService;
 public class AdviceController {
     @Resource
     private AdviceService adviceService;
+
+    private static final Logger logger = LoggerFactory.getLogger(AdviceController.class);
 
     @RequestMapping("/alladvices")
     public Map<String, Object> alladvices(@RequestParam(value = "page", defaultValue = "1") String page, @RequestParam(value = "pagesize"
@@ -55,5 +59,15 @@ public class AdviceController {
         }
         map.put("success", true);
         return map;
+    }
+
+    /**
+     * 修改指导信息
+     * @param advice
+     * @return
+     */
+    @RequestMapping("/upadvice")
+    public void update(Advice advice) {
+        logger.info(advice.toString());
     }
 }

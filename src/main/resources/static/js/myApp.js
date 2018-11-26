@@ -1,9 +1,17 @@
-
-const myobj = {
+// 项目全局对象
+const app = {
+    project : "jizhui", // 项目名称
+    host : getHost(),   //表示当前域名 + 端口号
+    hostname : document.location.hostname, //表示域名
+    href : document.location.href,//表示完整的URL
+    port : document.location.port   //表示端口号
+    protocol : document.location.protocol   //表示当前的网络协议
+    baseuri : protocol+"://"+host+"/"project+"/", // 请求前缀：网路协议://请求域名:端口/项目名称/
 }
-const url_m = {
-    prefic: "http://211.149.179.228/borrow"
-   // prefic : "http://localhost/borrow"
+// 获取请求host
+function getHost() {
+    var domain = document.domain;
+    return (domain == null || domain == "") ? window.location.host : domain;
 }
 /**
  * 获取请求参数

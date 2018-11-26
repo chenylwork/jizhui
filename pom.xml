@@ -6,7 +6,7 @@
     <groupId>com.yanshang</groupId>
     <artifactId>jizhui</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <name>jizhui</name>
     <description>Demo project for Spring Boot</description>
@@ -39,6 +39,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
@@ -74,7 +80,6 @@
             <artifactId>springfox-swagger2</artifactId>
             <version>2.6.1</version>
         </dependency>
-
 
         <dependency>
             <groupId>io.springfox</groupId>
@@ -142,12 +147,12 @@
             <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
-       <!-- <dependency>
-            <groupId>org.apache.tomcat</groupId>
-            <artifactId>tomcat-servlet-api</artifactId>
-            <version>8.0.36</version>
-            <scope>provided</scope>
-        </dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.tomcat</groupId>-->
+            <!--<artifactId>tomcat-servlet-api</artifactId>-->
+            <!--<version>8.0.36</version>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>se.jiderhamn.classloader-leak-prevention</groupId>
             <artifactId>classloader-leak-prevention-servlet</artifactId>
@@ -155,23 +160,23 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>jizhu</finalName>
+        <finalName>jizhui</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.springframework.boot</groupId>-->
+                <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
+            <!--</plugin>-->
             <!-- tomcat 远程部署项目插件-->
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <url>http://localhost:8080/manager/text</url>
+                    <url>http://47.95.6.234/manager/text</url>
                     <username>root</username>
                     <password>root</password>
                     <update>true</update>
-                    <path>/</path>
+                    <path>/jizhui</path>
                 </configuration>
             </plugin>
             <plugin>
