@@ -35,7 +35,11 @@ public class User implements Serializable {
     @JsonSerialize(include = Inclusion.NON_EMPTY)
     private Integer age; // 年龄
     @JsonSerialize(include = Inclusion.NON_EMPTY)
-    private String image; // 头像图片
+    private String image ; // 头像图片，本服务器地址
+    @JsonSerialize(include = Inclusion.NON_EMPTY)
+    private String avatar ; // 头像图片，media_id
+    @JsonSerialize(include = Inclusion.NON_EMPTY)
+    private String url ; // 头像图片访问url地址
     @JsonSerialize(include = Inclusion.NON_EMPTY)
     private String phone; // 电话
     @JsonSerialize(include = Inclusion.NON_EMPTY)

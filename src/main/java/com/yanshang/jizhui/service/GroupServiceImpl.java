@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import com.yanshang.jizhui.bean.Group;
@@ -27,6 +28,12 @@ public class GroupServiceImpl implements GroupService {
     public void del(Integer id) {
         // TODO Auto-generated method stub
         groupRepository.deleteById(id);
+    }
+
+    @Modifying
+    @Override
+    public int delByGroupId(String groupID) {
+        return groupRepository.deleteGroupByGroupid(groupID);
     }
 
     @Override

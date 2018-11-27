@@ -5,10 +5,12 @@ import cn.jiguang.common.resp.APIRequestException;
 import cn.jiguang.common.resp.ResponseWrapper;
 import cn.jmessage.api.JMessageClient;
 import cn.jmessage.api.common.model.RegisterInfo;
+import cn.jmessage.api.common.model.UserPayload;
 import cn.jmessage.api.common.model.message.MessageBody;
 import cn.jmessage.api.group.CreateGroupResult;
 import cn.jmessage.api.group.GroupListResult;
 import cn.jmessage.api.message.SendMessageResult;
+import cn.jmessage.api.resource.DownloadResult;
 import cn.jmessage.api.resource.UploadResult;
 import cn.jmessage.api.user.UserClient;
 import cn.jmessage.api.user.UserInfoResult;
@@ -59,6 +61,7 @@ public class UserController {
 
     /**
      * 根据用户名获取用户信息
+     *
      * @param username
      * @return
      */
@@ -69,27 +72,36 @@ public class UserController {
 
     /**
      * 注册专家
+     *
      * @param user
      * @return
      */
     @RequestMapping("/user/add/expert")
     public int addExpert(User user, MultipartFile file) {
-        int userId = (user.getId() != null && user.getId() != 0) ? user.getId() : 0 ;
+        int userId = (user.getId() != null && user.getId() != 0) ? user.getId() : 0;
         System.out.println(user);
         int result = 1; // 出错
         user.setRolename("专家");
         User oldUser = userService.finduserbyusername(user.getUsername());
         if (userId == 0) {
             if (oldUser == null) {
-                user.setImage(uploadImg(file)); // 保存图片
+//                String filePath = uploadImg(file);// 保存图片到本地
+                String filePath = saveFileToLoacl(file);
+                // 保存图片到极光
+                String avater = uploadJFile(filePath);
+                String fileUrl = loadJFile(avater);
+                // 图片所在服务器地址
+                user.setImage(filePath);
+                user.setAvatar(avater);
+                user.setUrl(fileUrl);
                 userService.save(user);
                 List<RegisterInfo> users = new ArrayList<RegisterInfo>();
                 // 极光注册
-                RegisterInfo user1 = RegisterInfo.newBuilder().setUsername(user.getUsername()).setPassword(password).build();
+                RegisterInfo user1 = RegisterInfo.newBuilder().setUsername(user.getUsername()).setPassword(password).setAvatar(avater).build();
                 try {//注册admin
                     ResponseWrapper res = userclient.registerAdmins(user1);
                     users.add(user1);
-                    result =  0; // 成功注册
+                    result = 0; // 成功注册
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -101,25 +113,41 @@ public class UserController {
                 return 3; // 需要修改的账号不存在
             }
             if (file != null && !file.isEmpty()) {
-                user.setImage(uploadImg(file)); // 保存图片
+                String filePath = saveFileToLoacl(file);// 保存图片到本地服务器
+                String mediaId = uploadJFile(filePath); // 保存文件到极光服务器
+                String url = loadJFile(mediaId); // 获取文件极光请求地址
+                user.setImage(filePath);
+                user.setAvatar(mediaId);
+                user.setUrl(url);
             } else {
                 user.setImage(oldUser.getImage());
+            }
+            UserPayload userPayload = UserPayload.newBuilder().setNickname(user.getNickname())
+                    .setAvatar(user.getAvatar()).build();
+            try {
+                client.updateUserInfo(user.getUsername(),userPayload);
+            } catch (APIConnectionException e) {
+                e.printStackTrace();
+            } catch (APIRequestException e) {
+                e.printStackTrace();
             }
             userService.save(user);
             return 4; // 修改成功
         }
         return result;
     }
+
     @RequestMapping("/user/query/page")
-    public Map<String,Object> userPageQuery(@RequestParam(value = "page",defaultValue = "1") String pageNo,
-                                    @RequestParam(value = "pagesize",defaultValue = "10") String rows,User user) {
+    public Map<String, Object> userPageQuery(@RequestParam(value = "page", defaultValue = "1") String pageNo,
+                                             @RequestParam(value = "pagesize", defaultValue = "10") String rows, User user) {
         System.out.println(user);
         Page<User> users = userService.pageFindExpert(user, new PageRequest(Integer.parseInt(pageNo) - 1, Integer.parseInt(rows)));
-        Map<String,Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("rows", users.getContent());
         map.put("total", users.getSize());
         return map;
     }
+
     private String uploadImg(MultipartFile img) {
         String image = "";
         String fileName = System.currentTimeMillis() + img.getOriginalFilename();
@@ -127,7 +155,7 @@ public class UserController {
         String destFileName = "D:/imgs/" + File.separator + fileName;
         File destFile = new File(destFileName);
         destFile.getParentFile().mkdirs();
-        image= "http://211.149.194.181:80/image/" + fileName;
+        image = "http://211.149.194.181:80/image/" + fileName;
         try {
             img.transferTo(destFile);
             System.out.println(destFile);
@@ -249,21 +277,24 @@ public class UserController {
 
         return rr;
     }
+
     @RequestMapping("/group/load/all")
-    public GroupListResult loadGroups() throws APIConnectionException, APIRequestException {
-        GroupListResult groupList = client.getGroupListByAppkey(0, 20);
-        return groupList;
+    public List<Group> loadGroups() throws APIConnectionException, APIRequestException {
+//        GroupListResult groupList = client.getGroupListByAppkey(0, 20);
+        List<Group> all = groupService.findAll();
+        return all;
     }
 
     /**
      * 极光上传文件
+     *
      * @param uploadPath
      * @return
      */
     private String uploadJFile(String uploadPath) {
         String mediaId = "";
         try {
-            UploadResult result = client.uploadFile("");
+            UploadResult result = client.uploadFile(uploadPath);
             mediaId = result.getMediaId();
         } catch (APIConnectionException e) {
             e.printStackTrace();
@@ -272,34 +303,72 @@ public class UserController {
         }
         return mediaId;
     }
+
+    /**
+     * 获取极光资源文件
+     *
+     * @param mediaId
+     */
+    public String loadJFile(String mediaId) {
+        String url = "";
+        try {
+            DownloadResult result = client.downloadFile(mediaId);
+            url = result.getUrl();
+        } catch (APIConnectionException e) {
+            e.printStackTrace();
+        } catch (APIRequestException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
+    @RequestMapping("/group/del")
+    public int delGroup(String groupID) throws APIConnectionException, APIRequestException {
+        long parseLongGroup = Long.parseLong(groupID);
+        client.deleteGroup(parseLongGroup);
+        int isDel = groupService.delByGroupId(groupID);
+        return (isDel > 0) ? 1 : 0;
+    }
+
+    /**
+     * 保存文件到本地
+     * @param file
+     * @return
+     */
+    private String saveFileToLoacl(MultipartFile file) {
+        String filePath = "";
+        String filename = file.getOriginalFilename();
+        filePath = uploadPath + "/" + filename;
+        try {
+            file.transferTo(new File(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return  filePath;
+    }
     /**
      * 创建群组
+     *
      * @param owner 群主username
      * @param gname 群组名字
-     * @param desc 群描述
-     * @param file 群头像
+     * @param desc  群描述
+     * @param file  群头像
      * @return
      */
     @RequestMapping("/addgroup")
     @ResponseBody
-    public ResultString<Void> addgroup(String owner, String gname, String desc,MultipartFile file) {
+    public ResultString<Void> addgroup(String owner, String gname, String desc, MultipartFile file) {
         ResultString<Void> rr = new ResultString<>();
         String filePath = "";
         String avatar = "";
-        try {
-            String filename = file.getOriginalFilename();
-            filePath = uploadPath+"/"+filename;
-            file.transferTo(new File(filePath));
-            avatar =  uploadJFile(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        filePath = saveFileToLoacl(file);
+        avatar = uploadJFile(filePath);
         if (avatar == null || avatar.equals("")) {
             rr.setCode(1);
             rr.setMessage("创建群组失败!!");
             logger.info("创建群组极光上传群组头像失败");
-            logger.info("上传的文件是否为空："+file.isEmpty());
-            logger.info("上传的文件地址："+filePath);
+            logger.info("上传的文件是否为空：" + file.isEmpty());
+            logger.info("上传的文件地址：" + filePath);
             return rr;
         }
         try {
@@ -307,6 +376,8 @@ public class UserController {
             Group group = new Group();
             group.setDescr(desc);
             group.setAvatar(avatar);
+            // 获取群头像请求地址
+            group.setUrl(loadJFile(avatar));
             group.setMaxmembercount(500);
             group.setGroupid(result.getGid().toString());
             group.setOwnerusername(owner);
@@ -339,21 +410,15 @@ public class UserController {
         User user = userService.finduserbyusername(username);
 
         if (user != null) {
-
-
             user.setPassword(pwd);
             userService.save(user);
             rr.setCode(0);
             rr.setMessage("修改密码成功!");
-
         } else {
             rr.setCode(1);
             rr.setMessage("用户名错误!!");
         }
-
         return rr;
-
-
     }
 
 
@@ -377,9 +442,7 @@ public class UserController {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
         return rr;
-
     }
 
     /**
@@ -391,7 +454,6 @@ public class UserController {
         User user = null;
         System.out.println(age);
         System.out.println(sex);
-
         user = userService.finduserByPhone(phone);
         if (user == null) { //说明这个用户没有保存手机号是用户名注册的
             user = userService.finduserbyusername(username);
@@ -401,16 +463,10 @@ public class UserController {
             user.setSex(sex);
 
         } else { //用户不等于空说明用户是手机号注册的
-
             user.setAge(Integer.parseInt(age));
             user.setNickname(nickname);
-
             user.setSex(sex);
-
-
         }
-
-
         userService.save(user);
         try {
             UserInfoResult res = client.getUserInfo(user.getUsername());
@@ -424,9 +480,7 @@ public class UserController {
         }
         rr.setMessage("保存用户信息成功");
         return rr;
-
     }
-
     /**
      * 获取所有的专家
      */
@@ -435,9 +489,9 @@ public class UserController {
     public ResultString<Map<String, Object>> findallexperts() {
         ResultString<Map<String, Object>> resultString = new ResultString<>();
         List<User> list = userService.finduserbytype();
-        List<Map<String,String>> resultList = new ArrayList<>();
+        List<Map<String, String>> resultList = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            Map<String,String> map = new HashMap<>();
+            Map<String, String> map = new HashMap<>();
             map.put("username", list.get(i).getUsername());
             map.put("image", list.get(i).getImage());
             map.put("phone", list.get(i).getPhone());
@@ -445,15 +499,13 @@ public class UserController {
             System.out.println(map);
             resultList.add(map);
         }
-        Map<String,Object> map = new HashMap<>();
-        map.put("users",resultList);
+        Map<String, Object> map = new HashMap<>();
+        map.put("users", resultList);
         System.out.println(resultList);
         resultString.setCode(0);
         resultString.setData(map);
         resultString.setMessage("获取专家成功");
         return resultString;
-
-
     }
 
     /**
@@ -471,17 +523,12 @@ public class UserController {
             jedis.expire(phone, 60);
             rr.setCode(0);
             rr.setMessage("验证码发送成功!");
-
         } catch (Exception e) {
             // TODO: handle exception
             rr.setCode(1);
             rr.setMessage("发送验证码失败!!!");
         }
-
-
         return rr;
-
-
     }
 
 
@@ -510,7 +557,6 @@ public class UserController {
 
                     List<RegisterInfo> users = new ArrayList<RegisterInfo>();
                     RegisterInfo register = RegisterInfo.newBuilder().setUsername(phone).setPassword("123456").build();
-
                     try {
                         ResponseWrapper res =
                                 userclient.registerAdmins(register);

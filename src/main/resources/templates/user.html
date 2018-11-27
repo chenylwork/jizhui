@@ -29,7 +29,7 @@
 		<th field="nickname" width="20" align="center">专家名称</th>
 		<th field="phone" width="20" align="center">专家电话)</th>
 		<th field="sex" width="20" align="center">专家性别</th>
-		<th data-options="field:'image',width:100, formatter:showImg">专家头像</th>
+		<th data-options="field:'url',width:100, formatter:showImg">专家头像</th>
 	</tr>
 	</thead>
 </table>
@@ -54,6 +54,7 @@
 <div id="dlg" class="easyui-dialog" style="width: 700px; height: 400px; padding: 10px 20px" closed="true" buttons="#dlg-buttons">
 	<form id="fm" method="post" enctype="multipart/form-data">
 		<input type="hidden" name="password" id="password" value="123456" />
+		<input type="reset" name="reset" style="display: none;" id="result_btn" />
 		<table cellspacing="8px">
 
 			<tr>
@@ -134,6 +135,7 @@ $(function(){
 
     /* 1、添加用户 */
     function openLinkAddDialog() {
+
         $("#dlg").dialog("open").dialog("setTitle", "添加专家信息");
         // url = "/admin/addsalt";
         url = "/user/add/expert";
@@ -151,7 +153,7 @@ $(function(){
         $("#fm").form("load", row);
         $("#dlg").dialog("open").dialog("setTitle", "编辑专家信息");
         url = "/user/add/expert?id=" + row.id;
-        img_url = row.image;
+        img_url = row.url;
         Vue.set(user,"image",img_url);
         console.log(img_url);
     }
@@ -224,7 +226,8 @@ $(function(){
                     $.messager.alert("系统提示","专家信息修改成功！！");
                 }
                 resetValue();
-                $("#dlg").dialog("close");
+                closeLinkDialog();
+                // $("#dlg").dialog("close");
                 /*数据变动，需要重新加载数据，作用类似刷新网页*/
                 $("#dg").datagrid("reload");
             }
@@ -232,11 +235,14 @@ $(function(){
     }
     /* 清空表单数据 */
     function resetValue() {
-        $("#id").val("");
-        $("#typename").val("");
-        $("#createtime").val("");
-        $("#createuser").val("");
+        Vue.set(user,"image","");
+        $("#result_btn").trigger("click");
     }
+
+    $("#dlg").dialog({onClose:function(){
+            resetValue();
+	}});
+
 
     /* 关闭对话框 */
     function closeLinkDialog() {
@@ -252,8 +258,9 @@ $(function(){
     }
     // /图片展示
     function showImg(value, row, index){
-        if(row.image){
-            return "<img style='width:200px;height:200px;' border='1' src='"+row.image+"'/>";
+        var image = row.url;
+        if(image){
+            return "<img style='width:200px;height:200px;' border='1' src='"+image+"'/>";
         }
     }
 </script>

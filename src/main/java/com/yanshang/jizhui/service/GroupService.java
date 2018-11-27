@@ -11,5 +11,12 @@ public interface GroupService {
 
     void del(Integer id);
 
+    /**
+     * 根据groupid删除群组
+     * @param groupID
+     * @return
+     */
+    int delByGroupId(String groupID);
+
     void save(Group group);
 }

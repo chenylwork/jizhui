@@ -7,19 +7,21 @@
     <script type="text/javascript" src="js/jquery.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.js"></script>
     <script type="text/javascript" src="js/vue.js"></script>
+    <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
 </head>
 <body>
 <div class="container" id="app">
     <h1 align="center" style="margin: 25px 0">
+        <!-- 按钮：用于打开模态框 -->
         <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal" style="float:left;">
             添加群组
         </button>
         群列表
-        <!-- 按钮：用于打开模态框 -->
     </h1>
     <table class="table table-hover table-bordered" v-on:load="loadGroups">
         <thead>
         <tr>
+            <th>操作</th>
             <th>群头像</th>
             <th>群组名称</th>
             <th>群主账号</th>
@@ -27,33 +29,26 @@
         </tr>
         </thead>
         <tbody>
-        <tr>
-            <td>群头像</td>
-            <td>群组名称</td>
-            <td>群主账号</td>
-            <td>群描述</td>
-        </tr>
-        <tr>
-            <td>群头像</td>
-            <td>群组名称</td>
-            <td>群主账号</td>
-            <td>群描述</td>
-        </tr>
-        <tr>
-            <td>群头像</td>
-            <td>群组名称</td>
-            <td>群主账号</td>
-            <td>群描述</td>
-        </tr>
+        <template v-for="group in groups">
+            <tr>
+                <td>
+                    <button v-on:click="delGroup(group.groupid)" type="button" class="btn btn-danger btn-block btn-lg">删除</button>
+                </td>
+                <td>
+                    <img v-bind:src="group.url" class="img-thumbnail" alt="群头像" width="120" height="120">
+                </td>
+                <td>{{group.name}}</td>
+                <td>{{group.ownerusername}}</td>
+                <td>{{group.descr}}</td>
+            </tr>
+        </template>
         </tbody>
     </table>
-
 
     <!-- 模态框 -->
     <div class="modal fade" id="myModal">
         <div class="modal-dialog">
             <div class="modal-content">
-
                 <!-- 模态框头部 -->
                 <div class="modal-header">
                     <h4 class="modal-title">群组添加</h4>
@@ -63,24 +58,31 @@
                 <!-- 模态框主体 -->
                 <div class="modal-body">
                     <div class="container">
-                        <div class="form-group">
-                            <label for="gname">群组名称:</label>
-                            <input type="text" class="form-control" id="gname" v-model="gname">
-                        </div>
-                        <div class="form-group">
-                            <label for="owner">群主账号:</label>
-                            <input type="text" v-on:blur="queryUser" class="form-control" id="owner" v-model="owner">
-                        </div>
-                        <div class="form-group">
-                            <label for="desc">群描述:</label>
-                            <input type="text" class="form-control" id="desc" v-model="desc">
-                        </div>
-                        <div class="form-group" style="margin-top: 35px;">
-                            <button type="button" class="btn btn-info btn-block btn-lg" v-on:click="submit_add_group">添加</button>
-                        </div>
+                        <form id="group_add_form" method="post" action="/addgroup" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="gname">群组名称:</label>
+                                <input type="text" name="gname" class="form-control" id="gname" v-model="gname">
+                            </div>
+                            <div class="form-group">
+                                <label for="owner">群主账号:</label>
+                                <input type="text" name="owner" v-on:blur="queryUser" class="form-control" id="owner" v-model="owner">
+                            </div>
+                            <div class="form-group">
+                                <label for="desc">群描述:</label>
+                                <input type="text" name="desc" class="form-control" id="desc" v-model="desc">
+                            </div>
+                            <div class="form-group">
+                                <input type="file" name="file" style="width: 0;height: 0;overflow: hidden;" v-on:change="load_head_img" id="head_img_file">
+                                <div style="width: 252px;height: 252px; overflow: hidden; border: 1px solid #000; margin: 0 auto;">
+                                    <img src="images/img_upload.png" style="width: 250px;height: 250px; " v-on:click="choose_head_img" id="show_head_img">
+                                </div>
+                            </div>
+                            <div class="form-group" style="margin-top: 35px;">
+                                <button type="button" class="btn btn-info btn-block btn-lg" v-on:click="submit_add_group">创建群组</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
                 <!-- 模态框底部 -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
@@ -98,10 +100,12 @@ var vm = new Vue({
         owner:"", // 群主账号
         gname:"", // 群名称
         desc:"", // 群描述
-        // groups:loadGroups()
+        groups:"",
     },
-    mounted : function() {
-      this.loadGroups();
+    created : function () {
+        this.loadGroups();
+        console.log("created groups》》》》》》》》》》")
+        console.log(this.groups);
     },
     methods:{
         queryUser:function(){
@@ -112,30 +116,70 @@ var vm = new Vue({
                 }
             });
         },
+        choose_head_img : function () {
+          $("#head_img_file").click();
+        },
+        load_head_img : function() {
+            var file = $("#head_img_file").prop('files')[0];
+            var reader = new FileReader();
+            reader.readAsBinaryString(file);
+            reader.onload = function(f){
+                var src = "data:" + file.type + ";base64," + window.btoa(this.result);
+                $("#show_head_img").attr("src",src);
+            }
+        },
         loadGroups:function(){
-            console.log("开始获取所有分组");
-            $.get("/group/load/all",function(result){
-                console.log(result);
+            console.log("vue in loadGroups method");
+            this.$http.get('/group/load/all').then(function(result) {
+                this.groups = result.body;
+                console.log(this.groups);
             });
+        },
+        delGroup : function (groupId) {
+            console.info("删除群组-》》》》》》");
+            var confirm = confirm_fun("确定删除该分组？？？");
+            if (confirm) {
+                console.info("确定删除"+groupId+"群组");
+              this.$http.post("/group/del",{"groupID":groupId},{emulateJSON:true}).then(function(result) {
+                    console.log("删除群组返回数据-》》》》》》");
+                    console.info(result);
+                    console.info("删除群组返回数据-《《《《《《《《《《《")
+              });
+            }
+            console.info("删除群组-《《《《《《");
         },
         submit_add_group:function () {
             var owner = this.owner;
             var gname = this.gname;
             var desc = this.desc;
-            if(owner == "" || gname == "" || desc == "") {
+            var file = $("#head_img_file").prop('files')[0];
+            var form = new FormData(document.getElementById("group_add_form"));
+            if(owner == "" || gname == "" || desc == "" || (file == null || file.length <= 0 )) {
                 alert("请完善创建群的信息！！");return;
             }
-            $.post("/addgroup",{"owner":owner,"gname":gname,"desc":desc},function(result){
-                console.log(result);
-                if (result.code == 0 || result.code == "0") {
-                    alert("群组创建成功！！");
-                } else {
-                    alert("创建群组异常，请及时联系管理员！");
-                }
-            });
+            console.log("创建群组提交-》》》》》");
+            var result = document.getElementById("group_add_form").submit();
+            console.log("创建群组返回信息-》》》》");
+            console.log(result)
+            // $.post("/addgroup",$("#group_add_form").serialize(),function(result){
+            //     console.log(result);
+            //     if (result.code == 0 || result.code == "0") {
+            //         alert("群组创建成功！！");
+            //     } else {
+            //         alert("创建群组异常，请及时联系管理员！");
+            //     }
+            // });
         }
     }
 });
+/**
+ * 提示框
+ * @param message
+ * @returns {*}
+ */
+var confirm_fun = function(message) {
+    return confirm(message);
+}
 </script>
 </body>
 </html>

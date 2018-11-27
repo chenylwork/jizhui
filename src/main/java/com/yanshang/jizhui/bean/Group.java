@@ -33,7 +33,8 @@ public class Group {
     private Integer maxmembercount; // 最大成员数
     private String ctime; // 群创建时间
     private String mtime; // 最后一次修改时间
-    private String avatar; // 群头像
+    private String avatar; // 群头像,mediaId
+    private String url; // 群头像请求地址
 
 
 }
