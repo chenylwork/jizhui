@@ -28,9 +28,9 @@
             <th>群描述</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody id="groups_body">
         <template v-for="group in groups">
-            <tr>
+            <tr v-bind:id="group.groupid">
                 <td>
                     <button v-on:click="delGroup(group.groupid)" type="button" class="btn btn-danger btn-block btn-lg">删除</button>
                 </td>
@@ -52,13 +52,14 @@
                 <!-- 模态框头部 -->
                 <div class="modal-header">
                     <h4 class="modal-title">群组添加</h4>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <button type="button" class="close close_btn" data-dismiss="modal">&times;</button>
                 </div>
 
                 <!-- 模态框主体 -->
                 <div class="modal-body">
                     <div class="container">
                         <form id="group_add_form" method="post" action="/addgroup" enctype="multipart/form-data">
+                            <input type="reset" id="resey_btn" style="display: none;"/>
                             <div class="form-group">
                                 <label for="gname">群组名称:</label>
                                 <input type="text" name="gname" class="form-control" id="gname" v-model="gname">
@@ -74,7 +75,7 @@
                             <div class="form-group">
                                 <input type="file" name="file" style="width: 0;height: 0;overflow: hidden;" v-on:change="load_head_img" id="head_img_file">
                                 <div style="width: 252px;height: 252px; overflow: hidden; border: 1px solid #000; margin: 0 auto;">
-                                    <img src="images/img_upload.png" style="width: 250px;height: 250px; " v-on:click="choose_head_img" id="show_head_img">
+                                    <img v-bind:src="group.headImg == '' ? 'images/img_upload.png' : group.headImg" style="width: 250px;height: 250px; " v-on:click="choose_head_img" id="show_head_img">
                                 </div>
                             </div>
                             <div class="form-group" style="margin-top: 35px;">
@@ -85,7 +86,7 @@
                 </div>
                 <!-- 模态框底部 -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-secondary close_btn" data-dismiss="modal">关闭</button>
                 </div>
 
             </div>
@@ -97,6 +98,9 @@
 var vm = new Vue({
     el:"#app",
     data:{
+        group:{
+            headImg:"",
+        },
         owner:"", // 群主账号
         gname:"", // 群名称
         desc:"", // 群描述
@@ -105,7 +109,7 @@ var vm = new Vue({
     created : function () {
         this.loadGroups();
         console.log("created groups》》》》》》》》》》")
-        console.log(this.groups);
+        console.log("groups :"+this.groups);
     },
     methods:{
         queryUser:function(){
@@ -131,44 +135,52 @@ var vm = new Vue({
         loadGroups:function(){
             console.log("vue in loadGroups method");
             this.$http.get('/group/load/all').then(function(result) {
-                this.groups = result.body;
-                console.log(this.groups);
+                var obj = eval('('+result.bodyText+')')
+                this.groups = obj.groups;
+                console.log(obj.groups);
             });
         },
+        /**
+         * 删除群组
+         * */
         delGroup : function (groupId) {
-            console.info("删除群组-》》》》》》");
             var confirm = confirm_fun("确定删除该分组？？？");
             if (confirm) {
-                console.info("确定删除"+groupId+"群组");
               this.$http.post("/group/del",{"groupID":groupId},{emulateJSON:true}).then(function(result) {
-                    console.log("删除群组返回数据-》》》》》》");
-                    console.info(result);
-                    console.info("删除群组返回数据-《《《《《《《《《《《")
+                  var body = result.body;
+                  console.info(body);
+                  if (body == "1" || body == 1) {
+                      alert("删除成功！");
+                      $("#"+groupId).remove();
+                  }
               });
             }
-            console.info("删除群组-《《《《《《");
         },
+        /**
+         * 添加群组
+         */
         submit_add_group:function () {
             var owner = this.owner;
             var gname = this.gname;
             var desc = this.desc;
             var file = $("#head_img_file").prop('files')[0];
-            var form = new FormData(document.getElementById("group_add_form"));
+            var data = new FormData($("#group_add_form")[0]);
             if(owner == "" || gname == "" || desc == "" || (file == null || file.length <= 0 )) {
                 alert("请完善创建群的信息！！");return;
             }
-            console.log("创建群组提交-》》》》》");
-            var result = document.getElementById("group_add_form").submit();
-            console.log("创建群组返回信息-》》》》");
-            console.log(result)
-            // $.post("/addgroup",$("#group_add_form").serialize(),function(result){
-            //     console.log(result);
-            //     if (result.code == 0 || result.code == "0") {
-            //         alert("群组创建成功！！");
-            //     } else {
-            //         alert("创建群组异常，请及时联系管理员！");
-            //     }
-            // });
+            var groupList = this.groups;
+            this.$http.post("/addgroup",data,{emulateJSON:true}).then(function(resultData) {
+                var result = resultData.body;
+                if (result.code == 0 || result.code == "0") {
+                    alert("群组创建成功！！");
+                    $(".close_btn").click();
+                    console.info("result.group");
+                    console.info(result.data);
+                    this.groups.push(result.data);
+                } else {
+                    alert("创建群组异常，请及时联系管理员！");
+                }
+            });
         }
     }
 });
@@ -180,6 +192,10 @@ var vm = new Vue({
 var confirm_fun = function(message) {
     return confirm(message);
 }
+$(".close_btn").click(function(){
+    $("#show_head_img").attr("src","images/img_upload.png");
+    $("#resey_btn").click();
+});
 </script>
 </body>
 </html>

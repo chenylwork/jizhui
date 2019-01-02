@@ -1,15 +1,12 @@
 package com.yanshang.jizhui.service;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-
-
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.stereotype.Service;
-
 import com.yanshang.jizhui.bean.Group;
 import com.yanshang.jizhui.respository.GroupRepository;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import javax.transaction.Transactional;
+import java.util.List;
 
 
 @Service
@@ -29,11 +26,10 @@ public class GroupServiceImpl implements GroupService {
         // TODO Auto-generated method stub
         groupRepository.deleteById(id);
     }
-
-    @Modifying
+    @Transactional
     @Override
     public int delByGroupId(String groupID) {
-        return groupRepository.deleteGroupByGroupid(groupID);
+        return groupRepository.deleteByGroupid(groupID);
     }
 
     @Override

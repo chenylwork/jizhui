@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>测试结果</title>
+    <link rel="stylesheet" type="text/css" href="pag/css/bootstrap.min.css">
+    <script type="text/javascript" src="pag/js/jquery.min.js"></script>
+    <script type="text/javascript" src="pag/js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/bootstrap-paginator.js"></script>
+    <script type="text/javascript" src="js/vue.js"></script>
+    <script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+</head>
+<body>
+<div class="container" id="app">
+    <h1 align="center" style="margin: 25px 0">
+        <!-- 按钮：用于打开模态框 -->
+        <button v-on:click="loadChecks('1')" type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal" style="float:left;">
+            搜索
+        </button>
+        <div style="display: inline; font-size: 20px; float: left; margin: 0 -30px 0 30px;">
+            账号：
+            <input type="text" id="username" />
+        </div>
+        检查结果列表
+    </h1>
+    <table class="table table-hover table-bordered">
+        <thead>
+        <tr>
+            <th>编号</th>
+            <th>测评账号</th>
+            <th>测评时间</th>
+            <th>测评结果</th>
+            <!--<th>知道意见</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        <template v-for="check in checks">
+            <tr v-bind:id="check.id">
+                <td>{{check.id}}</td>
+                <td>{{check.username}}</td>
+                <td>{{check.time}}</td>
+                <td>{{check.sensors}}</td>
+            </tr>
+        </template>
+        </tbody>
+    </table>
+</div>
+<ul class="pagination">
+    <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+    <li class="page-item"><a class="page-link" href="#">1</a></li>
+    <li class="page-item"><a class="page-link" href="#">2</a></li>
+    <li class="page-item"><a class="page-link" href="#">3</a></li>
+    <li class="page-item"><a class="page-link" href="#">Next</a></li>
+</ul>
+<div class="container">
+    <div id="example" style="text-align: center">
+        <ul id="pageLimit"></ul>
+    </div>
+</div>
+<script>
+
+</script>
+<script>
+    var vm = new Vue({
+        el:"#app",
+        data:{
+            checks:"",
+        },
+        created:function(){
+            this.loadChecks("1");
+        },
+        methods:{
+            loadChecks :function (pageNo) {
+                console.log("pageNo"+pageNo);
+                console.log($("#username").val());
+                this.$http.post(
+                    "/find/all/check",
+                    {"pageNo":pageNo,"rows":"10","username":$("#username").val()},
+                    {emulateJSON:true})
+                    .then(function(result){
+                        var body = result.body;
+                        console.log(body);
+                        this.checks = body.content;
+                        this.pagintor((body.number+1),body.totalPages)
+                });
+            },
+            pagintor : function (pageNo,pages) {
+                $("#pageLimit").empty();
+                $('#pageLimit').bootstrapPaginator({
+                    currentPage: pageNo,//当前的请求页面。
+                    totalPages: pages,//一共多少页。
+                    size: "normal",//应该是页眉的大小。
+                    bootstrapMajorVersion: 3,//bootstrap的版本要求。
+                    alignment: "right",
+                    numberOfPages: 5,//一页列出多少数据。
+                    itemTexts: function (type, page, current) {//如下的代码是将页眉显示的中文显示我们自定义的中文。
+                        switch (type) {
+                            case "first":
+                                return "首页";
+                            case "prev":
+                                return "上一页";
+                            case "next":
+                                return "下一页";
+                            case "last":
+                                return "末页";
+                            case "page":
+                                return page;
+                        }
+                    },
+                    onPageClicked: function (event, originalEvent, type, page){//给每个页眉绑定一个事件，其实就是ajax请求，其中page变量为当前点击的页上的数字。
+                        vm.loadChecks(page)
+                    }
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

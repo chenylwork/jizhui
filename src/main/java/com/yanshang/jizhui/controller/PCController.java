@@ -63,6 +63,10 @@ public class PCController {
         return "main";
     }
 
+    @RequestMapping("/check")
+    public String check() {
+        return "check";
+    }
     @RequestMapping("/advice")
     public String advice() {
         return "advice";

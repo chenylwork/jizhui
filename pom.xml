@@ -6,9 +6,9 @@
     <groupId>com.yanshang</groupId>
     <artifactId>jizhui</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
-    <name>jizhui</name>
+    <name>jizhu</name>
     <description>Demo project for Spring Boot</description>
 
     <parent>
@@ -39,12 +39,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
+            <!--<exclusions>-->
+                <!--<exclusion>-->
+                    <!--<groupId>org.springframework.boot</groupId>-->
+                    <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
+                <!--</exclusion>-->
+            <!--</exclusions>-->
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
@@ -160,19 +160,20 @@
         </dependency>
     </dependencies>
     <build>
-        <finalName>jizhui</finalName>
+        <finalName>jizhu</finalName>
         <plugins>
-            <!--<plugin>-->
-                <!--<groupId>org.springframework.boot</groupId>-->
-                <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <!-- tomcat 远程部署项目插件-->
             <plugin>
                 <groupId>org.apache.tomcat.maven</groupId>
                 <artifactId>tomcat7-maven-plugin</artifactId>
                 <version>2.2</version>
                 <configuration>
-                    <url>http://47.95.6.234/manager/text</url>
+                    <!--<url>http://47.95.6.234/manager/text</url>-->
+                    <url>http://211.149.194.181/manager/text</url>
                     <username>root</username>
                     <password>root</password>
                     <update>true</update>

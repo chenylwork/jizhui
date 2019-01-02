@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import redis.clients.jedis.Jedis;
@@ -86,18 +87,19 @@ public class UserController {
         if (userId == 0) {
             if (oldUser == null) {
 //                String filePath = uploadImg(file);// 保存图片到本地
-                String filePath = saveFileToLoacl(file);
+                Map<String, String> map = saveFileToLoacl(file);
+                String filePath = map.get(KEY_FILE_PATH);
                 // 保存图片到极光
                 String avater = uploadJFile(filePath);
-                String fileUrl = loadJFile(avater);
+                String url = map.get(KEY_FILE_URL);
                 // 图片所在服务器地址
                 user.setImage(filePath);
                 user.setAvatar(avater);
-                user.setUrl(fileUrl);
+                user.setUrl(url);
                 userService.save(user);
                 List<RegisterInfo> users = new ArrayList<RegisterInfo>();
                 // 极光注册
-                RegisterInfo user1 = RegisterInfo.newBuilder().setUsername(user.getUsername()).setPassword(password).setAvatar(avater).build();
+                RegisterInfo user1 = RegisterInfo.newBuilder().setNickname(user.getNickname()).setUsername(user.getUsername()).setPassword(password).setAvatar(avater).build();
                 try {//注册admin
                     ResponseWrapper res = userclient.registerAdmins(user1);
                     users.add(user1);
@@ -113,9 +115,10 @@ public class UserController {
                 return 3; // 需要修改的账号不存在
             }
             if (file != null && !file.isEmpty()) {
-                String filePath = saveFileToLoacl(file);// 保存图片到本地服务器
+                Map<String, String> map = saveFileToLoacl(file);// 保存图片到本地服务器
+                String filePath = map.get(KEY_FILE_PATH);
                 String mediaId = uploadJFile(filePath); // 保存文件到极光服务器
-                String url = loadJFile(mediaId); // 获取文件极光请求地址
+                String url = map.get(KEY_FILE_URL); // 获取文件极光请求地址
                 user.setImage(filePath);
                 user.setAvatar(mediaId);
                 user.setUrl(url);
@@ -148,22 +151,7 @@ public class UserController {
         return map;
     }
 
-    private String uploadImg(MultipartFile img) {
-        String image = "";
-        String fileName = System.currentTimeMillis() + img.getOriginalFilename();
-        System.out.println(fileName);
-        String destFileName = "D:/imgs/" + File.separator + fileName;
-        File destFile = new File(destFileName);
-        destFile.getParentFile().mkdirs();
-        image = "http://211.149.194.181:80/image/" + fileName;
-        try {
-            img.transferTo(destFile);
-            System.out.println(destFile);
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
-        return image;
-    }
+
 
     @RequestMapping("/register")
     @ResponseBody
@@ -279,10 +267,20 @@ public class UserController {
     }
 
     @RequestMapping("/group/load/all")
-    public List<Group> loadGroups() throws APIConnectionException, APIRequestException {
+    public Map<String,Object> loadGroups() {
 //        GroupListResult groupList = client.getGroupListByAppkey(0, 20);
         List<Group> all = groupService.findAll();
-        return all;
+        Map<String,Object> map = new LinkedHashMap<>();
+        if (all != null && !all.isEmpty()) {
+            map.put("code",1);
+            map.put("message","获取群组成功");
+            map.put("groups",all);
+        } else {
+            map.put("code",0);
+            map.put("message","获取群组失败");
+            map.put("groups",all);
+        }
+        return map;
     }
 
     /**
@@ -313,6 +311,7 @@ public class UserController {
         String url = "";
         try {
             DownloadResult result = client.downloadFile(mediaId);
+            logger.info(result.toString());
             url = result.getUrl();
         } catch (APIConnectionException e) {
             e.printStackTrace();
@@ -321,7 +320,6 @@ public class UserController {
         }
         return url;
     }
-
     @RequestMapping("/group/del")
     public int delGroup(String groupID) throws APIConnectionException, APIRequestException {
         long parseLongGroup = Long.parseLong(groupID);
@@ -335,16 +333,22 @@ public class UserController {
      * @param file
      * @return
      */
-    private String saveFileToLoacl(MultipartFile file) {
-        String filePath = "";
-        String filename = file.getOriginalFilename();
-        filePath = uploadPath + "/" + filename;
+    private Map<String,String> saveFileToLoacl(MultipartFile file) {
+        Map<String,String> map = new HashMap<>();
+        String fileName = System.currentTimeMillis() + file.getOriginalFilename();
+        map.put(KEY_FILE_NAME,fileName);
+        System.out.println(fileName);
+        String destFileName = "D:/imgs/" + File.separator + fileName;
+        map.put(KEY_FILE_PATH,destFileName);
+        File destFile = new File(destFileName);
+        map.put(KEY_FILE_URL,"http://211.149.194.181:80/image/" + fileName);
+        destFile.getParentFile().mkdirs();
         try {
-            file.transferTo(new File(filePath));
+            file.transferTo(destFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return  filePath;
+        return  map;
     }
     /**
      * 创建群组
@@ -357,12 +361,12 @@ public class UserController {
      */
     @RequestMapping("/addgroup")
     @ResponseBody
-    public ResultString<Void> addgroup(String owner, String gname, String desc, MultipartFile file) {
-        ResultString<Void> rr = new ResultString<>();
-        String filePath = "";
-        String avatar = "";
-        filePath = saveFileToLoacl(file);
-        avatar = uploadJFile(filePath);
+    public ResultString<Group> addgroup(String owner, String gname, String desc, MultipartFile file) {
+        ResultString<Group> rr = new ResultString<>();
+        Map<String, String> map = saveFileToLoacl(file);
+        String filePath = map.get(KEY_FILE_PATH); // 保存路径
+        String avatar = uploadJFile(filePath); // 极光avatar
+        String url = map.get(KEY_FILE_URL); // 请求url
         if (avatar == null || avatar.equals("")) {
             rr.setCode(1);
             rr.setMessage("创建群组失败!!");
@@ -377,7 +381,8 @@ public class UserController {
             group.setDescr(desc);
             group.setAvatar(avatar);
             // 获取群头像请求地址
-            group.setUrl(loadJFile(avatar));
+            group.setUrl(url);
+            group.setImage(map.get(KEY_FILE_PATH));
             group.setMaxmembercount(500);
             group.setGroupid(result.getGid().toString());
             group.setOwnerusername(owner);
@@ -388,6 +393,7 @@ public class UserController {
             System.out.println(result);
             rr.setCode(0);
             rr.setMessage("创建群组成功!!");
+            rr.setData(group);
         } catch (APIConnectionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -493,7 +499,7 @@ public class UserController {
         for (int i = 0; i < list.size(); i++) {
             Map<String, String> map = new HashMap<>();
             map.put("username", list.get(i).getUsername());
-            map.put("image", list.get(i).getImage());
+            map.put("image", list.get(i).getUrl());
             map.put("phone", list.get(i).getPhone());
             map.put("nickname", list.get(i).getNickname());
             System.out.println(map);
@@ -692,5 +698,9 @@ public class UserController {
         return rr;
 
     }
+
+    private static final String KEY_FILE_PATH = "filePath";
+    private static final String KEY_FILE_NAME = "fileName";
+    private static final String KEY_FILE_URL = "url";
 
 }

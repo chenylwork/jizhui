@@ -35,6 +35,7 @@ public class Group {
     private String mtime; // 最后一次修改时间
     private String avatar; // 群头像,mediaId
     private String url; // 群头像请求地址
+    private String image; // 群头像本地保存地址
 
 
 }

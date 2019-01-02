@@ -18,7 +18,8 @@ import com.yanshang.jizhui.service.UserService;
 
 
 @RestController
-public class UploadImgController {
+public class
+UploadImgController {
     @Resource
     private UserService userService;
 

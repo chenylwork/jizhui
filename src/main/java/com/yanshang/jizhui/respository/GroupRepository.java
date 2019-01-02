@@ -8,13 +8,12 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface GroupRepository extends JpaRepository<Group, Integer>, JpaSpecificationExecutor<Group> {
+
     /**
-     *
+     * 根据groupID删除
      * @param groupId
      * @return
      */
-    @Modifying
-    @Query(value = "DELETE from t_group where groupid = ?1",nativeQuery = true)
-    int deleteGroupByGroupid(String groupId);
+    int deleteByGroupid(String groupId);
 
 }
